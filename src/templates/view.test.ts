@@ -117,6 +117,6 @@ describe('buildInvoiceView', () => {
   })
 
   it('knows the page heights', () => {
-    expect(PAGE_HEIGHT).toEqual({ a4: 588, letter: 538 })
+    expect(PAGE_HEIGHT).toEqual({ a4: 792, letter: 725 })
   })
 })

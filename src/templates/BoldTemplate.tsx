@@ -58,9 +58,9 @@ export function BoldTemplate({ view }: { view: InvoiceView }) {
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col gap-6 pt-6 pr-8 pb-8 pl-8">
-        <div className="flex gap-4">
-          <div className="flex w-[144px] min-w-0 flex-col gap-1">
+      <div className="flex flex-1 flex-col gap-5 pt-6 pr-8 pb-7 pl-8">
+        <div className="grid grid-cols-[2fr_1fr_1fr] gap-4">
+          <div className="flex min-w-0 flex-col gap-1">
             <span className={label} style={{ color: accent }}>
               Billed to
             </span>
@@ -86,7 +86,7 @@ export function BoldTemplate({ view }: { view: InvoiceView }) {
               </span>
             )}
           </div>
-          <div className="flex w-[88px] flex-col gap-1">
+          <div className="flex flex-col gap-1">
             <span className={label} style={{ color: accent }}>
               Issued
             </span>
@@ -97,7 +97,7 @@ export function BoldTemplate({ view }: { view: InvoiceView }) {
               </span>
             )}
           </div>
-          <div className="flex w-[88px] flex-col gap-1">
+          <div className="flex flex-col gap-1">
             <span className={label} style={{ color: accent }}>
               Due
             </span>

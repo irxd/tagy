@@ -61,7 +61,7 @@ export function PreviewPane({
         onClick={() => onExpandedChange(true)}
         className="h-fit cursor-zoom-in rounded-[4px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tile-accent"
       >
-        <ScaledPage view={view} zoom={1} />
+        <ScaledPage view={view} zoom={416 / PAGE_WIDTH} />
       </button>
       <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1.5 text-xs font-semibold">
         <span className="size-[7px] rounded-full bg-tile-success" aria-hidden />
@@ -118,8 +118,8 @@ export function PreviewDialog({
 
 function FitWidth({ view }: { view: InvoiceView }) {
   const [ref, width] = useWidth<HTMLDivElement>()
-  // Fill the width on phones; cap at 1.75× (≈ 728 px) on large screens.
-  const zoom = width ? Math.min(1.75, (width - 32) / PAGE_WIDTH) : 1
+  // Fill the width on phones; cap at 1.3× (≈ 728 px) on large screens.
+  const zoom = width ? Math.min(1.3, (width - 32) / PAGE_WIDTH) : 1
   return (
     <div ref={ref} className="flex flex-1 justify-center overflow-y-auto px-4 pb-6">
       {width > 0 && <ScaledPage view={view} zoom={zoom} />}

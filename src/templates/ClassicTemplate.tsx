@@ -26,7 +26,7 @@ export function ClassicTemplate({ view }: { view: InvoiceView }) {
   return (
     <article
       aria-label={`Invoice ${view.number}`}
-      className="flex flex-col gap-[26px] px-9 py-10 text-left leading-[1.3]"
+      className="flex flex-col gap-5 px-9 py-8 text-left leading-[1.3]"
       style={{
         width: PAGE_WIDTH,
         minHeight: PAGE_HEIGHT[view.paper],

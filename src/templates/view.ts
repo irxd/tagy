@@ -14,8 +14,13 @@ export const ACCENTS: Record<Accent, string> = {
   violet: '#7C3AED',
 }
 
-/** Page width every template is authored at (the design's A4 board width). */
-export const PAGE_WIDTH = 416
+/**
+ * Page width templates lay out at. The design boards draw A4 at 416 px,
+ * which prints body text at ~14 pt; at 560 px the same 10 px text prints at
+ * ~10.5 pt, a normal invoice size. Measurements inside templates keep the
+ * design's values; the extra width goes to flexible areas.
+ */
+export const PAGE_WIDTH = 560
 /** Page height at PAGE_WIDTH, per paper size. */
 export const PAGE_HEIGHT: Record<Paper, number> = {
   a4: Math.round((PAGE_WIDTH * 297) / 210),

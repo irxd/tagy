@@ -15,7 +15,7 @@ export function MinimalTemplate({ view }: { view: InvoiceView }) {
   return (
     <article
       aria-label={`Invoice ${view.number}`}
-      className="flex flex-col gap-6 bg-white p-8 text-left leading-[1.3]"
+      className="flex flex-col gap-5 bg-white p-8 text-left leading-[1.3]"
       style={{
         width: PAGE_WIDTH,
         minHeight: PAGE_HEIGHT[view.paper],
