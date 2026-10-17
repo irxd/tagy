@@ -75,3 +75,20 @@ export function timeAgo(timestamp: string, now = new Date()): string {
   if (days < 30) return `${days} days ago`
   return formatDate(todayISO(new Date(timestamp)))
 }
+
+/** The backup reminder shows after this many days without a backup. */
+export const BACKUP_REMINDER_DAYS = 14
+
+/**
+ * Whether to remind about backups: never backed up, or the last backup is
+ * over 14 days old, counted from the oldest record when there was none.
+ */
+export function backupDue(
+  lastBackupAt: string | null,
+  oldestRecordAt: string | null,
+  now = new Date(),
+): boolean {
+  const since = lastBackupAt ?? oldestRecordAt
+  if (!since) return false
+  return daysBetween(todayISO(new Date(since)), todayISO(now)) > BACKUP_REMINDER_DAYS
+}

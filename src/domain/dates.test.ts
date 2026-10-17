@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, daysBetween, dueDateFor, formatDate, timeAgo, todayISO } from './dates'
+import { addDays, backupDue, daysBetween, dueDateFor, formatDate, timeAgo, todayISO } from './dates'
 
 describe('dates', () => {
   it('formats today as a local calendar date', () => {
@@ -39,5 +39,16 @@ describe('dates', () => {
     expect(timeAgo(new Date(2026, 9, 16, 23, 0).toISOString(), now)).toBe('Yesterday')
     expect(timeAgo(new Date(2026, 9, 14, 12, 0).toISOString(), now)).toBe('3 days ago')
     expect(timeAgo(new Date(2026, 8, 1, 12, 0).toISOString(), now)).toBe('01 Sep, 2026')
+  })
+
+  it('reminds about backups after 14 days', () => {
+    const now = new Date(2026, 9, 18, 12)
+    expect(backupDue(null, null, now)).toBe(false)
+    expect(backupDue(null, new Date(2026, 9, 10).toISOString(), now)).toBe(false)
+    expect(backupDue(null, new Date(2026, 9, 1).toISOString(), now)).toBe(true)
+    expect(
+      backupDue(new Date(2026, 9, 4).toISOString(), new Date(2026, 0, 1).toISOString(), now),
+    ).toBe(false)
+    expect(backupDue(new Date(2026, 9, 3).toISOString(), null, now)).toBe(true)
   })
 })
