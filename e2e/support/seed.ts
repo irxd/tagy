@@ -13,12 +13,24 @@ export async function seed(page: Page, stores: Record<string, object[]>) {
     (await indexedDB.databases()).some((d) => d.name === 'tagy' && (d.version ?? 0) >= 10),
   )
   await page.evaluate(async (data) => {
-    const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const req = indexedDB.open('tagy')
-      req.onsuccess = () => resolve(req.result)
-      req.onerror = () => reject(req.error)
-    })
-    const tx = db.transaction(Object.keys(data), 'readwrite')
+    const names = Object.keys(data)
+    // The app may still be upgrading the schema; retry until every store exists.
+    let db: IDBDatabase | undefined
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const opened = await new Promise<IDBDatabase>((resolve, reject) => {
+        const req = indexedDB.open('tagy')
+        req.onsuccess = () => resolve(req.result)
+        req.onerror = () => reject(req.error)
+      })
+      if (names.every((n) => opened.objectStoreNames.contains(n))) {
+        db = opened
+        break
+      }
+      opened.close()
+      await new Promise((r) => setTimeout(r, 100))
+    }
+    if (!db) throw new Error('The app never created its database stores')
+    const tx = db.transaction(names, 'readwrite')
     for (const [store, rows] of Object.entries(data)) {
       for (const row of rows) tx.objectStore(store).put(row)
     }
