@@ -86,3 +86,18 @@ test('period switches the range', async ({ page, isMobile }) => {
   await page.getByRole('menuitem', { name: 'All time' }).click()
   await expect(page.getByRole('region', { name: 'Summary' })).toContainText('All time')
 })
+
+test('Export CSV downloads the period’s invoices', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'desktop hero button')
+  await withDesignData(page)
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Export CSV' }).click(),
+  ])
+  expect(download.suggestedFilename()).toMatch(/^tagy-invoices-\d{4}-\d{2}-\d{2}\.csv$/)
+  const text = (await import('node:fs')).readFileSync((await download.path())!, 'utf8')
+  const lines = text.replace(/^﻿/, '').trim().split('\r\n')
+  expect(lines[0]).toMatch(/^Number,Status,Client/)
+  expect(lines).toHaveLength(12)
+  expect(text).toContain('INV-0042,draft,Northwind Studio')
+})
