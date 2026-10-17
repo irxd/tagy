@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useBlobUrl, useRecordCounts } from '@/db/hooks'
+import { useBackup } from '@/features/backup/useBackup'
 import { clearAllData, removeLogo, saveLogo } from '@/db/maintenance'
 import type { PaymentTerms, TemplateId } from '@/db/types'
 import { timeAgo } from '@/domain/dates'
@@ -334,6 +335,7 @@ export function DataSection({
 }) {
   const counts = useRecordCounts()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const backup = useBackup()
 
   return (
     <SectionCard
@@ -348,11 +350,15 @@ export function DataSection({
         <Stat label="Last backup" value={lastBackupAt ? timeAgo(lastBackupAt) : 'Never'} />
       </FieldRow>
       <div className="flex flex-wrap items-center gap-2">
-        {/* Backup export / import arrive with phase 6. */}
-        <Button variant="dark" icon={Download} disabled title="Coming soon">
+        <Button
+          variant="dark"
+          icon={Download}
+          disabled={backup.busy}
+          onClick={() => void backup.exportNow()}
+        >
           Export backup
         </Button>
-        <Button variant="outline" icon={Upload} disabled title="Coming soon">
+        <Button variant="outline" icon={Upload} onClick={backup.pickImport}>
           Import
         </Button>
         <Button
@@ -365,6 +371,7 @@ export function DataSection({
         </Button>
       </div>
       <ClearAllDialog open={confirmOpen} onOpenChange={setConfirmOpen} onCleared={onCleared} />
+      {backup.element}
     </SectionCard>
   )
 }

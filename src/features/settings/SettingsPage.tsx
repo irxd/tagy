@@ -13,6 +13,7 @@ import {
 import { useState, type ReactNode } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
 import { SaveIndicator } from '@/app/SaveIndicator'
+import { useBackup } from '@/features/backup/useBackup'
 import { useBlobUrl } from '@/db/hooks'
 import { TERM_LABELS, timeAgo } from '@/domain/dates'
 import { formatInvoiceNumber } from '@/domain/numbering'
@@ -72,6 +73,7 @@ function MobileSettings({ onCleared }: { onCleared: () => void }) {
   const { draft, set } = form
   const logoUrl = useBlobUrl(draft?.business.logoBlobId)
   const [clearOpen, setClearOpen] = useState(false)
+  const backup = useBackup()
   if (!draft) return null
 
   const b = draft.business
@@ -159,13 +161,18 @@ function MobileSettings({ onCleared }: { onCleared: () => void }) {
               : 'Never backed up'
           }
           trailing={
-            // Backup export / import arrive with phase 6.
-            <Button variant="dark" icon={Download} disabled className="py-2 text-[13px]">
+            <Button
+              variant="dark"
+              icon={Download}
+              disabled={backup.busy}
+              onClick={() => void backup.exportNow()}
+              className="py-2 text-[13px]"
+            >
               Export
             </Button>
           }
         />
-        <ListButton icon={Upload} title="Import backup" disabled onClick={() => {}} />
+        <ListButton icon={Upload} title="Import backup" onClick={backup.pickImport} />
         <ListButton
           icon={Trash2}
           tone="danger"
@@ -181,6 +188,7 @@ function MobileSettings({ onCleared }: { onCleared: () => void }) {
       </ListGroup>
 
       <ClearAllDialog open={clearOpen} onOpenChange={setClearOpen} onCleared={onCleared} />
+      {backup.element}
     </div>
   )
 }

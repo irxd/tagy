@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useClients, useInvoices, useSettings } from '@/db/hooks'
 import type { AppSettings, Invoice } from '@/db/types'
-import { formatDate, todayISO } from '@/domain/dates'
+import { backupDue, formatDate, todayISO } from '@/domain/dates'
 import { formatMoney, formatMoneyCompact } from '@/domain/money'
 import { inPeriod, overviewStats, type OverviewStats, type Period } from '@/domain/overview'
 import { displayStatus, type DisplayStatus } from '@/domain/status'
@@ -24,6 +24,8 @@ export interface Overview {
   empty: boolean
   /** "Explore with sample data" records are present. */
   hasSample: boolean
+  /** Over 14 days since the last backup (or since the first real invoice). */
+  backupDue: boolean
   period: Period
   setPeriod: (p: Period) => void
   money: (minor: number) => string
@@ -61,6 +63,12 @@ export function useOverview(): Overview | undefined {
       rows,
       empty: invoices.length === 0,
       hasSample: invoices.some((i) => i.sample),
+      backupDue: backupDue(
+        settings.lastBackupAt,
+        invoices
+          .filter((i) => !i.sample)
+          .reduce<string | null>((min, i) => (!min || i.createdAt < min ? i.createdAt : min), null),
+      ),
       period,
       setPeriod,
       money: (minor: number) => formatMoney(minor, currency, locale),

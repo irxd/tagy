@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router'
 import { useSettings } from '@/db/hooks'
+import { useBackup } from '@/features/backup/useBackup'
 import { addSampleData } from '@/db/sample'
 import { todayISO } from '@/domain/dates'
 import { TEMPLATE_LABELS } from '@/features/settings/options'
@@ -31,6 +32,7 @@ export function FirstVisit() {
   const settings = useSettings()
   const mobile = useLayout() === 'mobile'
   const toast = useToast()
+  const backup = useBackup()
   if (!settings) return null
 
   const steps = [
@@ -202,10 +204,10 @@ export function FirstVisit() {
             : 'Import a backup file to bring your invoices, clients and settings here.'}
         </span>
       </div>
-      {/* Backup import arrives with phase 6. */}
-      <Button variant="outline" icon={Upload} disabled title="Coming soon">
+      <Button variant="outline" icon={Upload} onClick={backup.pickImport}>
         {mobile ? 'Import' : 'Import backup'}
       </Button>
+      {backup.element}
     </section>
   )
 

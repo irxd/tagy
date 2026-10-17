@@ -1,5 +1,6 @@
 import {
   CircleAlert,
+  DatabaseBackup,
   ChevronRight,
   Copy,
   HardDrive,
@@ -17,6 +18,7 @@ import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useBlobUrl } from '@/db/hooks'
 import { clearSampleData } from '@/db/sample'
+import { useBackup } from '@/features/backup/useBackup'
 import { duplicateInvoice } from '@/db/invoices'
 import { daysBetween, formatDate, timeAgo } from '@/domain/dates'
 import { invoicesToCsv } from '@/domain/csv'
@@ -246,6 +248,61 @@ function dueLine(row: InvoiceRow, o: Overview) {
   return { text: `due ${formatDate(invoice.dueDate, 'd MMM')}`, late: false }
 }
 
+const DISMISS_KEY = 'tagy:backup-reminder-dismissed'
+
+/** Backup reminder (handoff): after 14 days without a backup. Dismissed for the session. */
+function BackupReminder({ o }: { o: Overview }) {
+  const backup = useBackup()
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return sessionStorage.getItem(DISMISS_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+  if (!o.backupDue || dismissed) return null
+  return (
+    <section
+      aria-label="Backup reminder"
+      className="flex flex-wrap items-center gap-3 rounded-tile-lg bg-tile-warning-soft px-4 py-3"
+    >
+      <DatabaseBackup size={18} className="shrink-0 text-tile-warning" aria-hidden />
+      <p className="min-w-0 flex-1 text-sm font-semibold text-tile-fg">
+        {o.settings.lastBackupAt
+          ? `Your last backup was ${timeAgo(o.settings.lastBackupAt).toLowerCase()}.`
+          : "You haven't backed up yet."}{' '}
+        <span className="font-normal text-tile-muted">
+          Your invoices live only in this browser — save a copy.
+        </span>
+      </p>
+      <div className="flex gap-2">
+        <Button
+          variant="soft"
+          onClick={() => {
+            setDismissed(true)
+            try {
+              sessionStorage.setItem(DISMISS_KEY, '1')
+            } catch {
+              // Private mode: dismissed until reload is fine.
+            }
+          }}
+        >
+          Later
+        </Button>
+        <Button
+          variant="dark"
+          icon={Download}
+          disabled={backup.busy}
+          onClick={() => void backup.exportNow()}
+        >
+          Export backup
+        </Button>
+      </div>
+      {backup.element}
+    </section>
+  )
+}
+
 /** Shown while "Explore with sample data" records exist. */
 function SampleBanner({ o }: { o: Overview }) {
   const toast = useToast()
@@ -302,6 +359,7 @@ function DesktopOverview({ o }: { o: Overview }) {
       />
 
       <SampleBanner o={o} />
+      <BackupReminder o={o} />
       <section
         aria-label="Summary"
         className="flex gap-6 rounded-tile-lg border border-tile-border p-5"
@@ -458,6 +516,7 @@ function DesktopRow({ row, o, menu }: { row: InvoiceRow; o: Overview; menu: Reac
 }
 
 function LocalDataNotice({ o }: { o: Overview }) {
+  const backup = useBackup()
   return (
     <section
       aria-label="Saved on this device only"
@@ -476,14 +535,19 @@ function LocalDataNotice({ o }: { o: Overview }) {
         </span>
       </div>
       <div className="flex shrink-0 gap-2">
-        {/* Backup export / import arrive with phase 6. */}
-        <Button variant="outline" icon={Upload} disabled title="Coming soon">
+        <Button variant="outline" icon={Upload} onClick={backup.pickImport}>
           Import
         </Button>
-        <Button variant="dark" icon={Download} disabled title="Coming soon">
+        <Button
+          variant="dark"
+          icon={Download}
+          disabled={backup.busy}
+          onClick={() => void backup.exportNow()}
+        >
           Export backup
         </Button>
       </div>
+      {backup.element}
     </section>
   )
 }
@@ -503,6 +567,7 @@ function MobileOverview({ o }: { o: Overview }) {
   const { menu, dialogs } = useRowActions((iso) => o.date(iso))
   const [searching, setSearching] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const backup = useBackup()
   const trend = o.stats.trend
   const shown =
     showAll || list.query || list.filter !== 'all' ? list.visible : list.visible.slice(0, 4)
@@ -542,6 +607,7 @@ function MobileOverview({ o }: { o: Overview }) {
       </header>
 
       <SampleBanner o={o} />
+      <BackupReminder o={o} />
       {searching && (
         <SearchField
           value={list.query}
@@ -699,10 +765,16 @@ function MobileOverview({ o }: { o: Overview }) {
               : 'Not backed up yet'}
           </span>
         </div>
-        {/* Backup export arrives with phase 6. */}
-        <Button variant="dark" icon={Download} disabled className="py-2 text-[13px]">
+        <Button
+          variant="dark"
+          icon={Download}
+          disabled={backup.busy}
+          onClick={() => void backup.exportNow()}
+          className="py-2 text-[13px]"
+        >
           Back up
         </Button>
+        {backup.element}
       </section>
       {dialogs}
     </div>
