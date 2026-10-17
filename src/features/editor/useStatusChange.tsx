@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { InvoiceStatus } from '@/db/types'
-import { MarkPaidDialog } from './MarkPaidDialog'
+import { MarkPaidDialog } from '@/features/invoices/MarkPaidDialog'
 import { useEditor } from './useEditor'
 
 /**
@@ -9,7 +9,7 @@ import { useEditor } from './useEditor'
  * first). Paid always goes through the dialog for the payment date.
  */
 export function useStatusChange() {
-  const { invoice, actions } = useEditor()
+  const { invoice, client, actions, money, totals, date } = useEditor()
   const [paidOpen, setPaidOpen] = useState(false)
 
   async function change(target: InvoiceStatus) {
@@ -26,6 +26,16 @@ export function useStatusChange() {
     }
   }
 
-  const dialog = <MarkPaidDialog open={paidOpen} onOpenChange={setPaidOpen} />
+  const dialog = (
+    <MarkPaidDialog
+      open={paidOpen}
+      onOpenChange={setPaidOpen}
+      invoice={invoice}
+      clientName={invoice.clientSnapshot?.name ?? client?.name}
+      total={money(totals.total)}
+      date={(iso) => date(iso)}
+      onConfirm={actions.markPaid}
+    />
+  )
   return { change, openPaid: () => setPaidOpen(true), dialog }
 }

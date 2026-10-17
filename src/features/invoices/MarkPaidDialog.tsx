@@ -4,25 +4,40 @@ import { addDays } from '@/domain/dates'
 import { Button } from '@/ui/Button'
 import { DateField, SelectField, TextField } from '@/ui/Field'
 import { Overlay } from '@/ui/Overlay'
+import type { Invoice } from '@/db/types'
+import { todayISO } from '@/domain/dates'
+import type { Payment } from '@/domain/status'
 import { useLayout } from '@/ui/useLayout'
-import { useEditor } from './useEditor'
 
 const PAYMENT_METHODS = ['Bank transfer', 'Card', 'Cash', 'PayPal', 'Wise', 'Other']
+
+export interface MarkPaidDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  invoice: Pick<Invoice, 'number' | 'dueDate'>
+  clientName: string | undefined
+  /** Formatted total, e.g. `$12,927.60`. */
+  total: string
+  /** Formats a calendar date the way the user chose in Settings. */
+  date: (iso: string) => string
+  onConfirm: (payment: Payment) => Promise<void>
+}
 
 /** Mark as paid dialog (desktop) / sheet (mobile): date, method, note. */
 export function MarkPaidDialog({
   open,
   onOpenChange,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
-  const { invoice, client, totals, money, date, today, actions } = useEditor()
+  invoice,
+  clientName: who,
+  total,
+  date,
+  onConfirm,
+}: MarkPaidDialogProps) {
+  const today = todayISO()
   const mobile = useLayout() === 'mobile'
   const [paidAt, setPaidAt] = useState(today)
   const [method, setMethod] = useState(PAYMENT_METHODS[0]!)
   const [note, setNote] = useState('')
-  const who = invoice.clientSnapshot?.name ?? client?.name
 
   const quick = [
     { label: 'Today', value: today },
@@ -48,7 +63,7 @@ export function MarkPaidDialog({
             variant="primary"
             icon={Check}
             onClick={async () => {
-              await actions.markPaid({ paidAt, method, note: note.trim() })
+              await onConfirm({ paidAt, method, note: note.trim() })
               onOpenChange(false)
             }}
           >
@@ -59,7 +74,7 @@ export function MarkPaidDialog({
     >
       <div className="flex items-center justify-between rounded-tile-md bg-tile-tile px-4 py-3.5">
         <span className="text-sm text-tile-muted">Amount</span>
-        <span className="text-[22px] font-bold tabular-nums">{money(totals.total)}</span>
+        <span className="text-[22px] font-bold tabular-nums">{total}</span>
       </div>
       <div className="flex flex-col gap-2">
         <div className="grid grid-cols-2 gap-2">
@@ -101,7 +116,7 @@ export function MarkPaidDialog({
       </div>
       <p className="flex gap-2.5 text-[13px] text-tile-muted">
         <Info size={16} className="mt-px shrink-0" aria-hidden />
-        Moves {money(totals.total)} from Unpaid to Paid on your Overview. You can undo this anytime.
+        Moves {total} from Unpaid to Paid on your Overview. You can undo this anytime.
       </p>
     </Overlay>
   )
