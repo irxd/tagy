@@ -152,15 +152,15 @@ export function FirstVisit() {
       aria-label="Invoices"
       className="flex flex-col items-center gap-2 rounded-tile-lg bg-tile-tile px-6 py-10 text-center"
     >
-      <div className="flex items-center pb-2" aria-hidden>
+      <div className="flex items-center pt-1.5 pb-3" aria-hidden>
         {[FileText, FileCheck, FileClock].map((Icon, i) => (
           <span
             key={i}
             className={cn(
-              'grid place-items-center rounded-xl border border-tile-border bg-tile-panel',
-              i === 1
-                ? 'z-10 -mx-2.5 h-14 w-12 text-tile-accent'
-                : 'h-[62px] w-[55px] text-tile-muted',
+              'grid h-[62px] w-[52px] place-items-center rounded-xl border border-tile-border bg-tile-panel',
+              i === 0 && '-rotate-6 text-tile-muted',
+              i === 1 && 'z-10 -mx-2.5 -translate-y-1.5 text-tile-accent',
+              i === 2 && 'rotate-6 text-tile-muted',
             )}
           >
             <Icon size={20} />
