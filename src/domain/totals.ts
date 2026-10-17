@@ -1,4 +1,4 @@
-import type { LineItem } from '@/db/types'
+import type { Invoice, LineItem, TaxRate } from '@/db/types'
 import { lineAmount, percentOf } from './money'
 
 export interface TotalsInput {
@@ -32,4 +32,28 @@ export function computeTotals({ items, discountPct, taxPct }: TotalsInput): Tota
   const taxable = subtotal - discount
   const tax = taxPct ? percentOf(taxable, taxPct) : 0
   return { lines, subtotal, discount, taxable, tax, total: taxable + tax }
+}
+
+/**
+ * Tax percent that applies to an invoice: none when Apply tax is off; the
+ * frozen rate once sent; otherwise the current rate from Settings.
+ */
+export function invoiceTaxPct(
+  invoice: Pick<Invoice, 'applyTax' | 'taxSnapshot' | 'taxRateId'>,
+  taxRates: TaxRate[],
+): number | null {
+  if (!invoice.applyTax) return null
+  return invoice.taxSnapshot?.pct ?? taxRates.find((t) => t.id === invoice.taxRateId)?.pct ?? null
+}
+
+/** Total due for an invoice, in its currency's minor units. */
+export function invoiceTotal(
+  invoice: Pick<Invoice, 'items' | 'discountPct' | 'applyTax' | 'taxSnapshot' | 'taxRateId'>,
+  taxRates: TaxRate[],
+): number {
+  return computeTotals({
+    items: invoice.items,
+    discountPct: invoice.discountPct,
+    taxPct: invoiceTaxPct(invoice, taxRates),
+  }).total
 }
