@@ -276,8 +276,8 @@ Six phases, about 7 weeks (36 working days) for one developer; phase 3 is the fi
    4. Live preview: Bold template in HTML beside the form
    5. Mobile editor: 4 steps (Client → Details → Items → Review), flow header, sticky action bar
    - Exit: create an invoice end to end on both layouts and see it in the preview
-4. **Templates and PDF (8 days)**
-   - View model, layout primitives, 4 templates in HTML and React-PDF
+4. **Templates and PDF (8 days)**, in five steps: other templates in HTML, Templates screen, print, PDF download, consistency tests
+   - View model, 4 templates in HTML and React-PDF
    - Templates screen: choose, accent, font, paper, show-on-invoice toggles, set as default
    - Download PDF, print route, multi-page tables
    - Exit: every template × A4 / Letter downloads and prints; visual tests pass
