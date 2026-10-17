@@ -6,9 +6,11 @@ import type { Page } from '@playwright/test'
  * load so Dexie has created the stores, then reload.
  */
 export async function seed(page: Page, stores: Record<string, object[]>) {
-  // Opening the database before Dexie does would create it without stores.
+  // Opening the database before Dexie has created its stores would fail, so
+  // wait for the schema (Dexie version 1 = IndexedDB version 10). Pages that
+  // don't read data yet never open it, so call this from a page that does.
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((d) => d.name === 'tagy'),
+    (await indexedDB.databases()).some((d) => d.name === 'tagy' && (d.version ?? 0) >= 10),
   )
   await page.evaluate(async (data) => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -83,6 +85,7 @@ export function invoice(clientId: string, rate: number, patch: object = {}) {
 
 /** The six clients from the Desktop · Clients board, with invoices behind their numbers. */
 export function designClients() {
+  n = 0 // same ids and numbers (INV-0001…) on every call
   return {
     clients: [
       client('ns', 'Northwind Studio', 'billing@northwind.co'),
@@ -106,4 +109,80 @@ export function designClients() {
       invoice('ok', 2_600_000, { issueDate: '2026-09-24' }),
     ],
   }
+}
+
+/** Settings and business profile from the design (Irsya Studio, 8% tax). */
+export function designSettings() {
+  return {
+    key: 'app',
+    business: {
+      name: 'Irsya Studio',
+      logoBlobId: null,
+      email: 'hello@irsya.studio',
+      phone: '+1 (212) 555-0193',
+      address: '221 Mercer St, New York, NY 10012',
+      taxId: '47-3829105',
+      website: 'irsya.studio',
+      paymentDetails:
+        'Bank transfer · Chase Bank\nAccount 000123454821 · Routing 021000021\nPlease use the invoice number as reference.',
+    },
+    prefix: 'INV-',
+    nextNumber: 43,
+    currency: 'USD',
+    terms: 'net14',
+    taxRates: [{ id: 'maine', name: 'Maine', pct: 8 }],
+    defaultTaxRateId: 'maine',
+    defaultTemplate: 'bold',
+    accent: 'blue',
+    font: 'sans',
+    paper: 'a4',
+    showFields: { logo: true, taxId: true, paymentDetails: true, signature: false },
+    defaultNotes: 'Thank you for your business!',
+    paymentDetailsByDefault: true,
+    locale: 'en-US',
+    dateFormat: 'dd MMM, yyyy',
+    lastBackupAt: null,
+  }
+}
+
+/** INV-0042 from the design: three items, 5% discount, 8% tax → $12,927.60. */
+export function designInvoice(patch: object = {}) {
+  return invoice('ns', 0, {
+    id: 'inv-42',
+    number: 'INV-0042',
+    status: 'draft',
+    issueDate: '2026-10-16',
+    dueDate: '2026-10-30',
+    items: [
+      {
+        id: 'a',
+        title: 'Brand identity design',
+        description: 'Logo, color system, typography',
+        qty: 1,
+        rate: 480_000,
+      },
+      {
+        id: 'b',
+        title: 'Website design & build',
+        description: '8 responsive pages, CMS setup',
+        qty: 1,
+        rate: 720_000,
+      },
+      {
+        id: 'c',
+        title: 'Strategy workshop',
+        description: 'Half-day remote session',
+        qty: 4,
+        rate: 15_000,
+      },
+    ],
+    discountPct: 5,
+    taxRateId: 'maine',
+    applyTax: true,
+    reference: 'PO-2026-118',
+    notes: 'Thank you for your business! Please include the invoice number with your payment.',
+    paymentDetails: designSettings().business.paymentDetails,
+    createdAt: '2026-10-16T09:00:00.000Z',
+    ...patch,
+  })
 }
