@@ -56,3 +56,30 @@ test('mobile: Download PDF on Review marks the draft as sent', async ({ page, is
   expect(name).toBe('INV-0042.pdf')
   await expect(page.getByRole('region', { name: 'Status' })).toContainText('Sent')
 })
+
+const mediaBox = (pdf: Buffer) =>
+  pdf
+    .toString('latin1')
+    .match(/\/MediaBox\s*\[([^\]]+)\]/)![1]!
+    .trim()
+    .split(/\s+/)
+    .map((n) => Math.round(Number(n)))
+
+test('every template × paper size: one page of the right size', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'desktop header button')
+  const sizes = { a4: [0, 0, 595, 842], letter: [0, 0, 612, 792] }
+  for (const paper of ['a4', 'letter'] as const) {
+    for (const templateId of ['minimal', 'classic', 'bold', 'studio'] as const) {
+      await page.goto('/clients')
+      await seed(page, {
+        ...designClients(),
+        settings: [{ ...designSettings(), paper }],
+        invoices: [designInvoice({ templateId })],
+      })
+      await page.goto('/invoices/inv-42')
+      const { pdf } = await downloadFrom(page, page.getByRole('button', { name: 'Download PDF' }))
+      expect(pageCount(pdf), `${templateId} ${paper}`).toBe(1)
+      expect(mediaBox(pdf), `${templateId} ${paper}`).toEqual(sizes[paper])
+    }
+  }
+})
