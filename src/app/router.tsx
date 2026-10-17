@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import { createBrowserRouter, type RouteObject } from 'react-router'
 import { ClientsPage } from '@/features/clients/ClientsPage'
-import { EditorPage } from '@/features/editor/EditorPage'
+import { EditorPage, NewInvoicePage } from '@/features/editor/EditorPage'
 import { OverviewPage } from '@/features/overview/OverviewPage'
 import { SettingsPage, SettingsSubPage } from '@/features/settings/SettingsPage'
 import { TemplatesPage } from '@/features/templates/TemplatesPage'
@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       { index: true, element: <OverviewPage /> },
-      { path: 'invoices/new', element: <EditorPage /> },
+      { path: 'invoices/new', element: <NewInvoicePage /> },
       { path: 'invoices/:id', element: <EditorPage /> },
       { path: 'templates', element: <TemplatesPage /> },
       { path: 'clients', element: <ClientsPage /> },
