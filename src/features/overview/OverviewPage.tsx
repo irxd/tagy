@@ -7,12 +7,15 @@ import {
   Plus,
   Search,
   TrendingDown,
+  Trash2,
   TrendingUp,
   Upload,
+  WandSparkles,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useBlobUrl } from '@/db/hooks'
+import { clearSampleData } from '@/db/sample'
 import { duplicateInvoice } from '@/db/invoices'
 import { daysBetween, formatDate, timeAgo } from '@/domain/dates'
 import { formatMoney } from '@/domain/money'
@@ -225,6 +228,33 @@ function dueLine(row: InvoiceRow, o: Overview) {
   return { text: `due ${formatDate(invoice.dueDate, 'd MMM')}`, late: false }
 }
 
+/** Shown while "Explore with sample data" records exist. */
+function SampleBanner({ o }: { o: Overview }) {
+  const toast = useToast()
+  if (!o.hasSample) return null
+  return (
+    <section
+      aria-label="Sample data"
+      className="flex flex-wrap items-center gap-3 rounded-tile-lg bg-tile-accent-soft px-4 py-3"
+    >
+      <WandSparkles size={18} className="shrink-0 text-tile-accent" aria-hidden />
+      <p className="min-w-0 flex-1 text-sm font-semibold text-tile-accent-ink">
+        You're exploring sample data. Your own invoices and settings aren't affected.
+      </p>
+      <Button
+        variant="outline"
+        icon={Trash2}
+        onClick={async () => {
+          await clearSampleData()
+          toast({ message: 'Sample data removed' })
+        }}
+      >
+        Remove sample data
+      </Button>
+    </section>
+  )
+}
+
 /* ---------- desktop ---------- */
 
 function DesktopOverview({ o }: { o: Overview }) {
@@ -253,6 +283,7 @@ function DesktopOverview({ o }: { o: Overview }) {
         }
       />
 
+      <SampleBanner o={o} />
       <section
         aria-label="Summary"
         className="flex gap-6 rounded-tile-lg border border-tile-border p-5"
@@ -489,6 +520,7 @@ function MobileOverview({ o }: { o: Overview }) {
         </div>
       </header>
 
+      <SampleBanner o={o} />
       {searching && (
         <SearchField
           value={list.query}

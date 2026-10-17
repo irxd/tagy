@@ -22,6 +22,8 @@ export interface Overview {
   rows: InvoiceRow[]
   /** True when no invoice exists at all (first visit). */
   empty: boolean
+  /** "Explore with sample data" records are present. */
+  hasSample: boolean
   period: Period
   setPeriod: (p: Period) => void
   money: (minor: number) => string
@@ -58,6 +60,7 @@ export function useOverview(): Overview | undefined {
       stats: overviewStats(invoices, { currency, taxRates, today, period }),
       rows,
       empty: invoices.length === 0,
+      hasSample: invoices.some((i) => i.sample),
       period,
       setPeriod,
       money: (minor: number) => formatMoney(minor, currency, locale),
