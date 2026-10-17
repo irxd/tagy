@@ -2,6 +2,23 @@
 
 What was built in each phase, and where it differs from `build-plan.md`. Newest first.
 
+## Phase 5 — Overview (done)
+
+**Built**
+
+- Overview: period menu (3 / 6 / 12 months, all time), Billed / Paid / Unpaid, stat tiles with the overdue amount, billed-per-month chart naming the best month, invoice list with status filters, search and a row menu (mark as sent / paid / unpaid, open, duplicate, PDF, back to draft, delete — paid and delete offer Undo).
+- Mobile Overview: billed card with a trend chip against the previous period (decision 6), Paid / Unpaid, an overdue alert that filters the list, recent invoices with See all.
+- First visit: welcome hero, setup checklist that ticks off, sample invoice preview, empty list, import hint.
+- Sample data: 6 clients and 42 invoices numbered DEMO-…, removable from a banner without touching real records or numbering.
+- Export CSV of the period's invoices (decision 4), plain decimal amounts, opens correctly in Excel.
+
+**Differences from the plan**
+
+- The period scopes the list as well as the figures (the design's "All 42" matches its 42 invoices in the period).
+- Totals count only the default currency; other currencies show on a separate "Also billed" line (decision 7).
+- The design's "8%" chips on stat tiles were placeholders; only the overdue amount chip is shown.
+- Paid invoices get "Mark as unpaid" in the row menu (the reverse of Mark as paid), which the design didn't show.
+
 ## Phase 4 — Templates and PDF (done)
 
 **Built**
