@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const PORT = 5180
+export const PREVIEW_PORT = 4180
 
 export default defineConfig({
   testDir: './e2e',
@@ -23,9 +24,18 @@ export default defineConfig({
       use: { ...devices['iPhone 13'] },
     },
   ],
-  webServer: {
-    command: `npx vite --port ${PORT} --strictPort`,
-    url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: `npx vite --port ${PORT} --strictPort`,
+      url: `http://localhost:${PORT}`,
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      // Production build with the service worker, for the offline spec.
+      command: `npm run build && npx vite preview --port ${PREVIEW_PORT} --strictPort`,
+      url: `http://localhost:${PREVIEW_PORT}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
+    },
+  ],
 })
