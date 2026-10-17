@@ -44,7 +44,7 @@ export function useOverview(): Overview | undefined {
     if (!invoices || !clients || !settings) return undefined
     const today = todayISO()
     const names = new Map(clients.map((c) => [c.id, c.name]))
-    const { currency, locale, taxRates } = settings
+    const { currency, locale } = settings
     const rows = invoices
       .filter((inv) => inPeriod(inv, period, today))
       .sort((a, b) => b.issueDate.localeCompare(a.issueDate) || b.number.localeCompare(a.number))
@@ -55,11 +55,11 @@ export function useOverview(): Overview | undefined {
           invoice.clientSnapshot?.name ??
           (invoice.clientId && names.get(invoice.clientId)) ??
           'No client',
-        total: formatMoney(invoiceTotal(invoice, taxRates), invoice.currency, locale),
+        total: formatMoney(invoiceTotal(invoice), invoice.currency, locale),
       }))
     return {
       settings,
-      stats: overviewStats(invoices, { currency, taxRates, today, period }),
+      stats: overviewStats(invoices, { currency, today, period }),
       rows,
       empty: invoices.length === 0,
       hasSample: invoices.some((i) => i.sample),

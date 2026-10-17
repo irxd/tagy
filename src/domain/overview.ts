@@ -1,4 +1,4 @@
-import type { ISODate, Invoice, TaxRate } from '@/db/types'
+import type { ISODate, Invoice } from '@/db/types'
 import { formatDate } from './dates'
 import { displayStatus, type DisplayStatus } from './status'
 import { invoiceTotal } from './totals'
@@ -67,12 +67,7 @@ export interface OverviewStats {
  */
 export function overviewStats(
   invoices: Invoice[],
-  {
-    currency,
-    taxRates,
-    today,
-    period,
-  }: { currency: string; taxRates: TaxRate[]; today: ISODate; period: Period },
+  { currency, today, period }: { currency: string; today: ISODate; period: Period },
 ): OverviewStats {
   const months = periodMonths(period, today)
   const bars = new Map(months.map((m) => [m, 0]))
@@ -89,7 +84,7 @@ export function overviewStats(
 
   for (const inv of invoices) {
     const status = displayStatus(inv, today)
-    const total = status === 'draft' ? 0 : invoiceTotal(inv, taxRates)
+    const total = status === 'draft' ? 0 : invoiceTotal(inv)
     const month = monthOf(inv.issueDate)
 
     if (!inPeriod(inv, period, today)) {

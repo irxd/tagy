@@ -218,7 +218,6 @@ function exportCsv(o: Overview) {
   const csv = invoicesToCsv(
     o.rows.map((r) => r.invoice),
     (inv) => o.rows.find((r) => r.invoice.id === inv.id)?.clientName ?? '',
-    o.settings.taxRates,
     o.today,
   )
   // The byte-order mark makes Excel read the file as UTF-8.

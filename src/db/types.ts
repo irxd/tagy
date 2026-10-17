@@ -28,13 +28,6 @@ export interface LineItem {
   rate: number
 }
 
-export interface TaxRate {
-  id: string
-  name: string
-  /** Percent, e.g. 8 for 8%. */
-  pct: number
-}
-
 export interface Business {
   name: string
   /** Key into the `blobs` store, or null when no logo is set. */
@@ -67,7 +60,8 @@ export interface Invoice {
   currency: string
   items: LineItem[]
   discountPct: number
-  taxRateId: string | null
+  /** The invoice's own tax percent, e.g. 8 for 8%; 0 when none is set. */
+  taxPct: number
   applyTax: boolean
   showPaymentDetails: boolean
   reference: string
@@ -81,7 +75,6 @@ export interface Invoice {
   /** Frozen when the invoice is marked Sent, so later edits elsewhere don't rewrite it. */
   clientSnapshot: ClientSnapshot | null
   businessSnapshot: Omit<Business, 'logoBlobId' | 'paymentDetails'> | null
-  taxSnapshot: Omit<TaxRate, 'id'> | null
   /** Seeded by "Explore with sample data"; removed by its one-click clear. */
   sample?: boolean
   createdAt: ISODateTime
@@ -119,8 +112,8 @@ export interface AppSettings {
   nextNumber: number
   currency: string
   terms: PaymentTerms
-  taxRates: TaxRate[]
-  defaultTaxRateId: string | null
+  /** Tax percent new invoices start with; 0 for none. */
+  defaultTaxPct: number
   defaultTemplate: TemplateId
   accent: Accent
   font: TemplateFont

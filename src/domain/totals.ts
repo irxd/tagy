@@ -1,10 +1,10 @@
-import type { Invoice, LineItem, TaxRate } from '@/db/types'
+import type { Invoice, LineItem } from '@/db/types'
 import { lineAmount, percentOf } from './money'
 
 export interface TotalsInput {
   items: Pick<LineItem, 'qty' | 'rate'>[]
   discountPct: number
-  /** Null when no tax applies (no rate chosen, or Apply tax is off). */
+  /** Null when no tax applies (no rate set, or Apply tax is off). */
   taxPct: number | null
 }
 
@@ -34,26 +34,18 @@ export function computeTotals({ items, discountPct, taxPct }: TotalsInput): Tota
   return { lines, subtotal, discount, taxable, tax, total: taxable + tax }
 }
 
-/**
- * Tax percent that applies to an invoice: none when Apply tax is off; the
- * frozen rate once sent; otherwise the current rate from Settings.
- */
-export function invoiceTaxPct(
-  invoice: Pick<Invoice, 'applyTax' | 'taxSnapshot' | 'taxRateId'>,
-  taxRates: TaxRate[],
-): number | null {
-  if (!invoice.applyTax) return null
-  return invoice.taxSnapshot?.pct ?? taxRates.find((t) => t.id === invoice.taxRateId)?.pct ?? null
+/** Tax percent that applies to an invoice: its own rate, unless Apply tax is off or it is 0. */
+export function invoiceTaxPct(invoice: Pick<Invoice, 'applyTax' | 'taxPct'>): number | null {
+  return invoice.applyTax && invoice.taxPct > 0 ? invoice.taxPct : null
 }
 
 /** Total due for an invoice, in its currency's minor units. */
 export function invoiceTotal(
-  invoice: Pick<Invoice, 'items' | 'discountPct' | 'applyTax' | 'taxSnapshot' | 'taxRateId'>,
-  taxRates: TaxRate[],
+  invoice: Pick<Invoice, 'items' | 'discountPct' | 'applyTax' | 'taxPct'>,
 ): number {
   return computeTotals({
     items: invoice.items,
     discountPct: invoice.discountPct,
-    taxPct: invoiceTaxPct(invoice, taxRates),
+    taxPct: invoiceTaxPct(invoice),
   }).total
 }

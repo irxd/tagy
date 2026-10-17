@@ -66,7 +66,7 @@ function Hint({ icon: Icon, children }: { icon: typeof Eye; children: ReactNode 
 
 /** Details: number, dates, currency, terms, tax, discount, reference. */
 export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
-  const { invoice, settings, set, date } = useEditor()
+  const { invoice, set, date } = useEditor()
   const [number, setNumber] = useState<string | null>(null)
   const [numberError, setNumberError] = useState<string | null>(null)
 
@@ -79,20 +79,6 @@ export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
     setNumberError(null)
     set({ number: trimmed })
   }
-
-  const taxOptions = [
-    { value: '', label: 'No tax' },
-    ...settings.taxRates.map((t) => ({ value: t.id, label: `${t.name} · ${t.pct}%` })),
-    // Keep a frozen rate visible even if it was removed from Settings since.
-    ...(invoice.taxSnapshot && !settings.taxRates.some((t) => t.id === invoice.taxRateId)
-      ? [
-          {
-            value: invoice.taxRateId ?? '',
-            label: `${invoice.taxSnapshot.name} · ${invoice.taxSnapshot.pct}%`,
-          },
-        ]
-      : []),
-  ]
 
   return (
     <div className={cn('grid gap-2.5', columns === 4 ? 'grid-cols-4' : 'grid-cols-2')}>
@@ -136,11 +122,10 @@ export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
           set({ terms, dueDate: dueDateFor(invoice.issueDate, terms) })
         }}
       />
-      <SelectField
+      <PercentField
         label="Tax"
-        value={invoice.taxRateId ?? ''}
-        options={taxOptions}
-        onChange={(e) => set({ taxRateId: e.target.value || null, applyTax: !!e.target.value })}
+        value={invoice.taxPct}
+        onValue={(taxPct) => set({ taxPct, applyTax: taxPct > 0 })}
       />
       <PercentField
         label="Discount"
@@ -157,7 +142,8 @@ export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
   )
 }
 
-function PercentField({
+/** A percent box for tax and discount; empty means 0. */
+export function PercentField({
   label,
   value,
   onValue,
@@ -375,8 +361,7 @@ function ItemRow({
 
 /** Summary: subtotal, discount, tax, the dark total tile and the two invoice toggles. */
 export function SummaryCard({ className }: { className?: string }) {
-  const { invoice, totals, money, taxPct, set, settings } = useEditor()
-  const rate = taxPct ?? settings.taxRates.find((t) => t.id === invoice.taxRateId)?.pct
+  const { invoice, totals, money, taxPct, set } = useEditor()
   return (
     <Card title="Summary" className={className}>
       <div className="grid grid-cols-3 gap-2">
@@ -404,10 +389,10 @@ export function SummaryCard({ className }: { className?: string }) {
       <div className="flex flex-col gap-3 px-0.5 pt-1">
         <Toggle
           checked={invoice.applyTax}
-          disabled={!invoice.taxRateId}
+          disabled={!invoice.taxPct}
           onCheckedChange={(applyTax) => set({ applyTax })}
         >
-          {rate ? `Apply tax (${rate}%)` : 'Apply tax'}
+          {invoice.taxPct ? `Apply tax (${invoice.taxPct}%)` : 'Apply tax'}
         </Toggle>
         <Checkbox
           checked={invoice.showPaymentDetails}

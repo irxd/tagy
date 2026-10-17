@@ -56,7 +56,7 @@ export function useEditorState(id: string): Editor | null | undefined {
   if (invoice === null) return null
   if (!invoice || !settings) return undefined
   const today = todayISO()
-  const taxPct = invoiceTaxPct(invoice, settings.taxRates)
+  const taxPct = invoiceTaxPct(invoice)
   const totals = computeTotals({ items: invoice.items, discountPct: invoice.discountPct, taxPct })
   const money = (minor: number) => formatMoney(minor, invoice.currency, settings.locale)
   const date = (iso: string, pattern = settings.dateFormat) => formatDate(iso, pattern)
@@ -75,13 +75,11 @@ export function useEditorState(id: string): Editor | null | undefined {
   const current = invoice
   const actions: Editor['actions'] = {
     async send() {
-      const taxRate = settings.taxRates.find((t) => t.id === current.taxRateId)
       await write(
         markSent(current, {
           now: new Date().toISOString(),
           client,
           business: settings.business,
-          taxRate,
         }),
       )
       toast({ message: `${current.number} marked as sent` })

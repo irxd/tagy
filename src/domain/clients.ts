@@ -1,4 +1,4 @@
-import type { Client, ISODate, Invoice, TaxRate } from '@/db/types'
+import type { Client, ISODate, Invoice } from '@/db/types'
 import { displayStatus } from './status'
 import { invoiceTotal } from './totals'
 
@@ -20,12 +20,7 @@ export interface ClientStats {
  * Per-client figures for the Clients grid. Amounts only count invoices in
  * `currency` — totals never mix currencies (decision 7).
  */
-export function clientStats(
-  invoices: Invoice[],
-  currency: string,
-  taxRates: TaxRate[],
-  today: ISODate,
-): ClientStats {
+export function clientStats(invoices: Invoice[], currency: string, today: ISODate): ClientStats {
   let billed = 0
   let unpaid = 0
   let overdue = 0
@@ -40,7 +35,7 @@ export function clientStats(
       continue
     }
     if (inv.currency !== currency) continue
-    const total = invoiceTotal(inv, taxRates)
+    const total = invoiceTotal(inv)
     billed += total
     if (status !== 'paid') unpaid += total
     if (status === 'overdue') overdue += total

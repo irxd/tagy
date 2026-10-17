@@ -13,13 +13,12 @@ const inv = (patch: Partial<Invoice>): Invoice =>
     items: [{ id: 'a', title: 'Work', description: '', qty: 1, rate: 10_000 }],
     discountPct: 0,
     applyTax: false,
-    taxRateId: null,
-    taxSnapshot: null,
+    taxPct: 0,
     ...patch,
   }) as Invoice
 
 const stats = (invoices: Invoice[], period: '3m' | '6m' | '12m' | 'all' = '6m') =>
-  overviewStats(invoices, { currency: 'USD', taxRates: [], today, period })
+  overviewStats(invoices, { currency: 'USD', today, period })
 
 describe('periods', () => {
   it('lists the months of a period, ending this month', () => {

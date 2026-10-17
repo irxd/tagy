@@ -79,11 +79,10 @@ function MobileSettings({ onCleared }: { onCleared: () => void }) {
   if (!draft) return null
 
   const b = draft.business
-  const tax = draft.taxRates.find((t) => t.id === draft.defaultTaxRateId)
   const defaultsSummary = [
     `Next: ${formatInvoiceNumber(draft.prefix, draft.nextNumber)}`,
     TERM_LABELS[draft.terms],
-    tax ? `${tax.pct}% tax` : 'No tax',
+    draft.defaultTaxPct ? `${draft.defaultTaxPct}% tax` : 'No tax',
   ].join(' · ')
 
   return (

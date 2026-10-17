@@ -4,7 +4,6 @@ import { clientStats, matchesClient } from './clients'
 import { invoiceTaxPct, invoiceTotal } from './totals'
 
 const today = '2026-10-18'
-const rates = [{ id: 't', name: 'Tax', pct: 10 }]
 
 const inv = (patch: Partial<Invoice>): Invoice =>
   ({
@@ -15,25 +14,20 @@ const inv = (patch: Partial<Invoice>): Invoice =>
     items: [{ id: 'l', title: 'Work', description: '', qty: 1, rate: 10_000 }],
     discountPct: 0,
     applyTax: false,
-    taxRateId: null,
-    taxSnapshot: null,
+    taxPct: 0,
     ...patch,
   }) as Invoice
 
 describe('invoice totals', () => {
-  it('uses no tax when Apply tax is off', () => {
-    expect(invoiceTaxPct(inv({ applyTax: false, taxRateId: 't' }), rates)).toBeNull()
+  it("uses the invoice's own rate", () => {
+    const taxed = inv({ applyTax: true, taxPct: 5 })
+    expect(invoiceTaxPct(taxed)).toBe(5)
+    expect(invoiceTotal(taxed)).toBe(10_500)
   })
 
-  it('prefers the frozen tax over the current rate', () => {
-    const sent = inv({ applyTax: true, taxRateId: 't', taxSnapshot: { name: 'Old', pct: 5 } })
-    expect(invoiceTaxPct(sent, rates)).toBe(5)
-    expect(invoiceTotal(sent, rates)).toBe(10_500)
-  })
-
-  it('falls back to the current rate, or none if it was deleted', () => {
-    expect(invoiceTaxPct(inv({ applyTax: true, taxRateId: 't' }), rates)).toBe(10)
-    expect(invoiceTaxPct(inv({ applyTax: true, taxRateId: 'gone' }), rates)).toBeNull()
+  it('uses no tax when Apply tax is off or the rate is 0', () => {
+    expect(invoiceTaxPct(inv({ applyTax: false, taxPct: 10 }))).toBeNull()
+    expect(invoiceTaxPct(inv({ applyTax: true, taxPct: 0 }))).toBeNull()
   })
 })
 
@@ -46,7 +40,6 @@ describe('clientStats', () => {
         inv({ status: 'sent', dueDate: '2026-10-10', issueDate: '2026-09-26' }),
       ],
       'USD',
-      rates,
       today,
     )
     expect(stats).toEqual({
@@ -63,16 +56,15 @@ describe('clientStats', () => {
     const stats = clientStats(
       [inv({ status: 'draft' }), inv({ status: 'sent', currency: 'EUR' })],
       'USD',
-      rates,
       today,
     )
     expect(stats).toMatchObject({ invoiceCount: 2, billed: 0, unpaid: 0, hint: 'draft' })
   })
 
   it('picks the hint by priority', () => {
-    expect(clientStats([inv({ status: 'sent' })], 'USD', rates, today).hint).toBe('unpaid')
-    expect(clientStats([inv({ status: 'paid' })], 'USD', rates, today).hint).toBe('paid')
-    expect(clientStats([], 'USD', rates, today)).toMatchObject({ hint: 'new', lastIssueDate: null })
+    expect(clientStats([inv({ status: 'sent' })], 'USD', today).hint).toBe('unpaid')
+    expect(clientStats([inv({ status: 'paid' })], 'USD', today).hint).toBe('paid')
+    expect(clientStats([], 'USD', today)).toMatchObject({ hint: 'new', lastIssueDate: null })
   })
 })
 

@@ -1,12 +1,4 @@
-import type {
-  Business,
-  Client,
-  ISODate,
-  ISODateTime,
-  Invoice,
-  InvoiceStatus,
-  TaxRate,
-} from '@/db/types'
+import type { Business, Client, ISODate, ISODateTime, Invoice, InvoiceStatus } from '@/db/types'
 import { daysBetween } from './dates'
 
 /** What the UI shows. Overdue is never stored: it is Sent past its due date. */
@@ -35,13 +27,15 @@ export interface SendContext {
   now: ISODateTime
   client: Client | undefined
   business: Business
-  taxRate: TaxRate | undefined
 }
 
-/** Draft → Sent. Freezes client, business and tax so later edits elsewhere don't rewrite it. */
+/**
+ * Draft → Sent. Freezes client and business so later edits elsewhere don't
+ * rewrite it. Tax needs no freezing: the invoice holds its own rate.
+ */
 export function markSent(invoice: Invoice, ctx: SendContext): StatusPatch {
   assertStatus(invoice, 'draft')
-  const { client, business, taxRate } = ctx
+  const { client, business } = ctx
   return {
     status: 'sent',
     sentAt: ctx.now,
@@ -62,7 +56,6 @@ export function markSent(invoice: Invoice, ctx: SendContext): StatusPatch {
       taxId: business.taxId,
       website: business.website,
     },
-    taxSnapshot: invoice.applyTax && taxRate ? { name: taxRate.name, pct: taxRate.pct } : null,
   }
 }
 
@@ -74,7 +67,6 @@ export function backToDraft(invoice: Invoice): StatusPatch {
     sentAt: null,
     clientSnapshot: null,
     businessSnapshot: null,
-    taxSnapshot: null,
   }
 }
 

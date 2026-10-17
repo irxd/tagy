@@ -44,7 +44,7 @@ export function MoneyInput({
   )
 }
 
-/** Decimal input for quantities and percentages; commits valid numbers ≥ 0 within `max`. */
+/** Decimal input for quantities and percentages; commits valid numbers ≥ 0 within `max` (empty is 0). */
 export function DecimalInput({
   value,
   onValue,
@@ -60,8 +60,8 @@ export function DecimalInput({
       value={text ?? String(value)}
       onChange={(e) => {
         setText(e.target.value)
-        const n = Number(e.target.value.replace(',', '.'))
-        if (e.target.value.trim() !== '' && Number.isFinite(n) && n >= 0 && n <= max) onValue(n)
+        const n = Number(e.target.value.replace(',', '.') || '0')
+        if (Number.isFinite(n) && n >= 0 && n <= max) onValue(n)
       }}
       onBlur={(e) => {
         setText(null)

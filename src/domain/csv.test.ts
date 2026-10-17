@@ -11,8 +11,7 @@ const invoice = {
   items: [{ id: 'a', title: 'Design', description: '', qty: 1, rate: 1_260_000 }],
   discountPct: 5,
   applyTax: true,
-  taxRateId: 't',
-  taxSnapshot: null,
+  taxPct: 8,
   paidAt: '2026-10-28',
   paidMethod: 'Bank transfer',
   reference: 'PO "118", rush',
@@ -20,12 +19,7 @@ const invoice = {
 
 describe('invoicesToCsv', () => {
   it('writes a header and one row per invoice with plain amounts', () => {
-    const csv = invoicesToCsv(
-      [invoice],
-      () => 'Northwind Studio',
-      [{ id: 't', name: 'Tax', pct: 8 }],
-      '2026-10-31',
-    )
+    const csv = invoicesToCsv([invoice], () => 'Northwind Studio', '2026-10-31')
     const [header, row] = csv.trim().split('\r\n')
     expect(header).toBe(
       'Number,Status,Client,Issue date,Due date,Currency,Subtotal,Discount,Tax,Total,Paid on,Payment method,Reference',
@@ -43,7 +37,7 @@ describe('invoicesToCsv', () => {
       paidMethod: '',
       reference: '',
     } as Invoice
-    const row = invoicesToCsv([open], () => 'Acme, Inc.\nLondon', [], '2026-11-02')
+    const row = invoicesToCsv([open], () => 'Acme, Inc.\nLondon', '2026-11-02')
       .trim()
       .split('\r\n')
       .slice(1)

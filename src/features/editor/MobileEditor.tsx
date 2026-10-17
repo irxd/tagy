@@ -48,6 +48,7 @@ import { useToast } from '@/ui/toastContext'
 import { Toggle } from '@/ui/Toggle'
 import { DecimalInput, MoneyInput } from './inputs'
 import { PreviewDialog, ScaledPage } from './preview'
+import { PercentField } from './sections'
 import { useEditor } from './useEditor'
 import { useInvoiceView } from './useInvoiceView'
 import { useDownloadPdf } from './useDownloadPdf'
@@ -330,7 +331,7 @@ function ClientStep() {
 /* ---------- 2 · Details ---------- */
 
 function DetailsStep() {
-  const { invoice, settings, set, date } = useEditor()
+  const { invoice, set, date } = useEditor()
   const [numberError, setNumberError] = useState<string | null>(null)
   const [number, setNumber] = useState<string | null>(null)
 
@@ -403,14 +404,10 @@ function DetailsStep() {
             options={Intl.supportedValuesOf('currency').map((c) => ({ value: c, label: c }))}
             onChange={(e) => set({ currency: e.target.value })}
           />
-          <SelectField
+          <PercentField
             label="Tax"
-            value={invoice.taxRateId ?? ''}
-            options={[
-              { value: '', label: 'No tax' },
-              ...settings.taxRates.map((t) => ({ value: t.id, label: `${t.name} ${t.pct}%` })),
-            ]}
-            onChange={(e) => set({ taxRateId: e.target.value || null, applyTax: !!e.target.value })}
+            value={invoice.taxPct}
+            onValue={(taxPct) => set({ taxPct, applyTax: taxPct > 0 })}
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -420,21 +417,11 @@ function DetailsStep() {
             value={invoice.reference}
             onChange={(e) => set({ reference: e.target.value })}
           />
-          <label className="group flex flex-col gap-[3px] rounded-tile-md border-[1.5px] border-transparent bg-tile-tile px-3.5 pt-2.5 pb-[11px] focus-within:border-tile-accent focus-within:bg-tile-panel">
-            <span className="text-[13px] text-tile-muted group-focus-within:text-tile-accent">
-              Discount
-            </span>
-            <span className="flex items-baseline text-[15px] font-bold">
-              <DecimalInput
-                aria-label="Discount"
-                value={invoice.discountPct}
-                max={100}
-                onValue={(discountPct) => set({ discountPct })}
-                className="w-full min-w-0 bg-transparent outline-none"
-              />
-              <span className="text-tile-muted">%</span>
-            </span>
-          </label>
+          <PercentField
+            label="Discount"
+            value={invoice.discountPct}
+            onValue={(discountPct) => set({ discountPct })}
+          />
         </div>
       </div>
       <p className="flex items-center gap-2.5 px-1.5 text-xs text-tile-muted">

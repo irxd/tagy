@@ -93,7 +93,7 @@ export function buildInvoiceView({
   const { currency } = invoice
   const locale = settings.locale
   const amount = (minor: number) => formatAmount(minor, currency, locale)
-  const taxPct = invoiceTaxPct(invoice, settings.taxRates)
+  const taxPct = invoiceTaxPct(invoice)
   const totals = computeTotals({ items: invoice.items, discountPct: invoice.discountPct, taxPct })
   const status = displayStatus(invoice, today)
   const qtyFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 4 })

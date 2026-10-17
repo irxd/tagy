@@ -47,6 +47,24 @@ test('totals follow the design example and react to edits', async ({ page }) => 
   await expect(summary).toContainText('$12,112.50')
 })
 
+test('tax can be set on the invoice without a rate in Settings', async ({ page }) => {
+  await page.goto('/clients')
+  await seed(page, { settings: [{ ...designSettings(), defaultTaxPct: 0 }] })
+  await page.goto('/invoices/new')
+  await expect(page.getByRole('switch', { name: 'Apply tax' })).toBeDisabled()
+
+  await page.getByRole('button', { name: 'Add item' }).first().click()
+  await field(page, 'Item 1 rate').fill('100')
+  await field(page, 'Tax').fill('10')
+  const summary = page.getByRole('region', { name: 'Summary' })
+  await expect(summary).toContainText('$110.00')
+  await expect(page.getByRole('switch', { name: 'Apply tax (10%)' })).toBeChecked()
+
+  await field(page, 'Tax').fill('')
+  await expect(summary).not.toContainText('$110.00')
+  await expect(page.getByRole('switch', { name: 'Apply tax' })).toBeDisabled()
+})
+
 test('due date follows issue date and terms', async ({ page }) => {
   await openDesignInvoice(page)
   await field(page, 'Terms').selectOption('net30')

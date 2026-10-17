@@ -1,4 +1,4 @@
-import type { ISODate, Invoice, TaxRate } from '@/db/types'
+import type { ISODate, Invoice } from '@/db/types'
 import { minorToDecimal } from './money'
 import { displayStatus } from './status'
 import { computeTotals, invoiceTaxPct } from './totals'
@@ -32,14 +32,13 @@ function cell(value: string): string {
 export function invoicesToCsv(
   invoices: Invoice[],
   clientName: (invoice: Invoice) => string,
-  taxRates: TaxRate[],
   today: ISODate,
 ): string {
   const rows = invoices.map((inv) => {
     const totals = computeTotals({
       items: inv.items,
       discountPct: inv.discountPct,
-      taxPct: invoiceTaxPct(inv, taxRates),
+      taxPct: invoiceTaxPct(inv),
     })
     const amount = (minor: number) => minorToDecimal(minor, inv.currency)
     return [

@@ -22,7 +22,7 @@ const invoice = (patch: Partial<Invoice> = {}): Invoice => ({
   currency: 'USD',
   items: [],
   discountPct: 0,
-  taxRateId: 't1',
+  taxPct: 8,
   applyTax: true,
   showPaymentDetails: true,
   reference: '',
@@ -35,7 +35,6 @@ const invoice = (patch: Partial<Invoice> = {}): Invoice => ({
   paidNote: '',
   clientSnapshot: null,
   businessSnapshot: null,
-  taxSnapshot: null,
   createdAt: '2026-10-16T09:00:00.000Z',
   updatedAt: '2026-10-16T09:00:00.000Z',
   ...patch,
@@ -83,27 +82,19 @@ describe('displayStatus', () => {
 describe('transitions', () => {
   const business = { ...defaultSettings().business, name: 'Tagy Studio' }
   const now = '2026-10-16T10:00:00.000Z'
-  const taxRate = { id: 't1', name: 'Maine', pct: 8 }
 
-  it('Draft → Sent sets sentAt and freezes client, business and tax', () => {
-    const patch = markSent(invoice(), { now, client, business, taxRate })
+  it('Draft → Sent sets sentAt and freezes client and business', () => {
+    const patch = markSent(invoice(), { now, client, business })
     expect(patch).toMatchObject({
       status: 'sent',
       sentAt: now,
       clientSnapshot: { name: 'Northwind Studio', email: 'billing@northwind.co' },
       businessSnapshot: { name: 'Tagy Studio' },
-      taxSnapshot: { name: 'Maine', pct: 8 },
     })
   })
 
-  it('skips the tax snapshot when tax is off, and the client one with no client', () => {
-    const patch = markSent(invoice({ applyTax: false, clientId: null }), {
-      now,
-      client: undefined,
-      business,
-      taxRate,
-    })
-    expect(patch.taxSnapshot).toBeNull()
+  it('skips the client snapshot with no client', () => {
+    const patch = markSent(invoice({ clientId: null }), { now, client: undefined, business })
     expect(patch.clientSnapshot).toBeNull()
   })
 
@@ -113,7 +104,6 @@ describe('transitions', () => {
       sentAt: null,
       clientSnapshot: null,
       businessSnapshot: null,
-      taxSnapshot: null,
     })
   })
 
@@ -138,7 +128,7 @@ describe('transitions', () => {
   })
 
   it('refuses transitions from the wrong status', () => {
-    expect(() => markSent(invoice({ status: 'paid' }), { now, client, business, taxRate })).toThrow(
+    expect(() => markSent(invoice({ status: 'paid' }), { now, client, business })).toThrow(
       'INV-0042 is paid, expected draft',
     )
     expect(() => markPaid(invoice(), { paidAt: '', method: '', note: '' })).toThrow()

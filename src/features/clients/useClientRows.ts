@@ -32,7 +32,7 @@ export function useClientRows(): ClientsData | undefined {
     const today = todayISO()
     const rows = clients.map((client) => {
       const currency = client.currency ?? settings.currency
-      const stats = clientStats(byClient.get(client.id) ?? [], currency, settings.taxRates, today)
+      const stats = clientStats(byClient.get(client.id) ?? [], currency, today)
       return { client, stats, currency }
     })
     return { rows, settings }

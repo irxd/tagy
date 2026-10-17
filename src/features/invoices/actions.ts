@@ -35,7 +35,6 @@ export async function sendInvoice(id: string): Promise<Invoice> {
     now: new Date().toISOString(),
     client,
     business: settings.business,
-    taxRate: settings.taxRates.find((t) => t.id === invoice.taxRateId),
   })
   await trackSave(updateInvoice(id, patch))
   return invoice

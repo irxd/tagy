@@ -79,6 +79,12 @@ describe('invoices', () => {
     expect((await getSettings()).nextNumber).toBe(43)
   })
 
+  it('starts with the default tax rate, or none', async () => {
+    expect(await createInvoice({})).toMatchObject({ taxPct: 0, applyTax: false })
+    await updateSettings({ defaultTaxPct: 8 })
+    expect(await createInvoice({})).toMatchObject({ taxPct: 8, applyTax: true })
+  })
+
   it('takes currency and terms from the client', async () => {
     const client = await createClient({ name: 'Mono Ventures', currency: 'EUR', terms: 'net30' })
     const inv = await createInvoice({ clientId: client.id, issueDate: '2026-10-01' })

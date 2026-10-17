@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { base64ToBlob, blobToBase64 } from '@/lib/base64'
 import { db } from './db'
+import { invoiceV1toV2, settingsV1toV2, taxRatesV1 } from './migrations'
 import type { AppSettings, Client, Invoice, StoredBlob } from './types'
 
 /*
@@ -9,7 +10,7 @@ import type { AppSettings, Client, Invoice, StoredBlob } from './types'
  * replaces all data in one transaction — a failed import changes nothing.
  */
 
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 export class BackupError extends Error {}
 
@@ -56,7 +57,7 @@ const invoiceSchema: z.ZodType<Invoice> = z.object({
   currency: z.string().length(3),
   items: z.array(lineItem),
   discountPct: z.number().min(0).max(100),
-  taxRateId: z.string().nullable(),
+  taxPct: z.number().min(0).max(100),
   applyTax: z.boolean(),
   showPaymentDetails: z.boolean(),
   reference: z.string(),
@@ -69,7 +70,6 @@ const invoiceSchema: z.ZodType<Invoice> = z.object({
   paidNote: z.string(),
   clientSnapshot: clientSnapshot.nullable(),
   businessSnapshot: business.omit({ logoBlobId: true, paymentDetails: true }).nullable(),
-  taxSnapshot: z.object({ name: z.string(), pct: z.number() }).nullable(),
   sample: z.boolean().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -97,8 +97,7 @@ const settingsSchema: z.ZodType<AppSettings> = z.object({
   nextNumber: z.number().int().min(1),
   currency: z.string().length(3),
   terms,
-  taxRates: z.array(z.object({ id: z.string(), name: z.string(), pct: z.number() })),
-  defaultTaxRateId: z.string().nullable(),
+  defaultTaxPct: z.number().min(0).max(100),
   defaultTemplate: template,
   accent: z.enum(['blue', 'ink', 'green', 'orange', 'pink', 'violet']),
   font: z.enum(['sans', 'serif', 'mono']),
@@ -135,7 +134,19 @@ export type BackupFile = z.infer<typeof fileSchema>
  * one. Each future version adds a step here; the same steps also run as
  * Dexie upgrades in the browser.
  */
-const migrations: Record<number, (data: unknown) => unknown> = {}
+const migrations: Record<number, (data: unknown) => unknown> = {
+  1: (data) => {
+    const d = data as { invoices?: unknown; settings?: Record<string, unknown> | null }
+    const rates = taxRatesV1(d.settings ?? undefined)
+    return {
+      ...d,
+      invoices: Array.isArray(d.invoices)
+        ? d.invoices.map((inv: Record<string, unknown>) => invoiceV1toV2(inv, rates))
+        : d.invoices,
+      settings: d.settings ? settingsV1toV2(d.settings) : d.settings,
+    }
+  },
+}
 
 function migrate(raw: { schemaVersion: number; data: unknown }): unknown {
   let data = raw.data

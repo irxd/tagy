@@ -6,7 +6,6 @@ import { buildInvoiceView, PAGE_HEIGHT } from './view'
 const settings: AppSettings = {
   ...defaultSettings(),
   business: { ...defaultSettings().business, name: 'Tagy Studio', email: 'hello@tagy.studio' },
-  taxRates: [{ id: 't', name: 'Maine', pct: 8 }],
 }
 
 const client = {
@@ -29,7 +28,7 @@ const invoice = {
     { id: 'c', title: 'Strategy workshop', description: '', qty: 4, rate: 15_000 },
   ],
   discountPct: 5,
-  taxRateId: 't',
+  taxPct: 8,
   applyTax: true,
   showPaymentDetails: true,
   reference: 'PO-2026-118',
@@ -38,7 +37,6 @@ const invoice = {
   paidAt: null,
   clientSnapshot: null,
   businessSnapshot: null,
-  taxSnapshot: null,
 } as unknown as Invoice
 
 const view = (patch: Partial<Invoice> = {}, s: AppSettings = settings) =>

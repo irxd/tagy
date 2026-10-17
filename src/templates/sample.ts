@@ -54,7 +54,7 @@ export function sampleInvoice(settings: AppSettings): { invoice: Invoice; client
       },
     ],
     discountPct: 5,
-    taxRateId: 'sample-tax',
+    taxPct: 8,
     applyTax: true,
     showPaymentDetails: true,
     reference: 'PO-2026-118',
@@ -78,7 +78,6 @@ export function sampleInvoice(settings: AppSettings): { invoice: Invoice; client
           taxId: '',
           website: '',
         },
-    taxSnapshot: { name: 'Tax', pct: 8 },
     createdAt: now,
     updatedAt: now,
   }

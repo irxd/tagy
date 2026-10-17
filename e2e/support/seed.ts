@@ -7,10 +7,10 @@ import type { Page } from '@playwright/test'
  */
 export async function seed(page: Page, stores: Record<string, object[]>) {
   // Opening the database before Dexie has created its stores would fail, so
-  // wait for the schema (Dexie version 1 = IndexedDB version 10). Pages that
+  // wait for the current schema (Dexie version 2 = IndexedDB version 20). Pages that
   // don't read data yet never open it, so call this from a page that does.
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((d) => d.name === 'tagy' && (d.version ?? 0) >= 10),
+    (await indexedDB.databases()).some((d) => d.name === 'tagy' && (d.version ?? 0) >= 20),
   )
   await page.evaluate(async (data) => {
     const names = Object.keys(data)
@@ -75,7 +75,7 @@ export function invoice(clientId: string, rate: number, patch: object = {}) {
     currency: 'USD',
     items: [{ id: `l-${n}`, title: 'Work', description: '', qty: 1, rate }],
     discountPct: 0,
-    taxRateId: null,
+    taxPct: 0,
     applyTax: false,
     showPaymentDetails: true,
     reference: '',
@@ -88,7 +88,6 @@ export function invoice(clientId: string, rate: number, patch: object = {}) {
     paidNote: '',
     clientSnapshot: null,
     businessSnapshot: null,
-    taxSnapshot: null,
     createdAt: now,
     updatedAt: now,
     ...patch,
@@ -142,8 +141,7 @@ export function designSettings() {
     nextNumber: 43,
     currency: 'USD',
     terms: 'net14',
-    taxRates: [{ id: 'maine', name: 'Maine', pct: 8 }],
-    defaultTaxRateId: 'maine',
+    defaultTaxPct: 8,
     defaultTemplate: 'bold',
     accent: 'blue',
     font: 'sans',
@@ -189,7 +187,7 @@ export function designInvoice(patch: object = {}) {
       },
     ],
     discountPct: 5,
-    taxRateId: 'maine',
+    taxPct: 8,
     applyTax: true,
     reference: 'PO-2026-118',
     notes: 'Thank you for your business! Please include the invoice number with your payment.',

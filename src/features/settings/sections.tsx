@@ -43,9 +43,6 @@ type SectionProps = {
   hideHeader?: boolean
 }
 
-/** The single default tax rate Settings edits (taxRates[0]). */
-export const DEFAULT_TAX_ID = 'default'
-
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function BusinessSection({ form, className, hideHeader }: SectionProps) {
@@ -200,23 +197,13 @@ export function DefaultsSection({ form, className, hideHeader }: SectionProps) {
   const [nextText, setNextText] = useState<string | null>(null)
   if (!draft) return null
 
-  const taxPct = draft.taxRates.find((t) => t.id === DEFAULT_TAX_ID)?.pct
   const nextValue = nextText ?? String(draft.nextNumber).padStart(4, '0')
   const nextValid = /^\d{1,9}$/.test(nextValue) && Number(nextValue) >= 1
 
   function setTax(text: string) {
     const pct = Number(text.replace(',', '.'))
-    if (text.trim() === '' || !Number.isFinite(pct) || pct <= 0) {
-      set({
-        taxRates: draft!.taxRates.filter((t) => t.id !== DEFAULT_TAX_ID),
-        defaultTaxRateId: null,
-      })
-    } else {
-      set({
-        taxRates: [{ id: DEFAULT_TAX_ID, name: 'Tax', pct }],
-        defaultTaxRateId: DEFAULT_TAX_ID,
-      })
-    }
+    const valid = text.trim() !== '' && Number.isFinite(pct) && pct > 0 && pct <= 100
+    set({ defaultTaxPct: valid ? pct : 0 })
   }
 
   return (
@@ -274,7 +261,7 @@ export function DefaultsSection({ form, className, hideHeader }: SectionProps) {
           label="Tax rate (%)"
           inputMode="decimal"
           placeholder="None"
-          defaultValue={taxPct ?? ''}
+          defaultValue={draft.defaultTaxPct || ''}
           onChange={(e) => setTax(e.target.value)}
         />
         <SelectField
