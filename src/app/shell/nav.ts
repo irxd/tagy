@@ -4,16 +4,9 @@ export interface NavItem {
   to: string
   label: string
   icon: LucideIcon
-  /** Extra path prefixes that keep this item active, e.g. the editor under Overview. */
-  activeFor?: string[]
 }
 
-export const overviewNav: NavItem = {
-  to: '/',
-  label: 'Overview',
-  icon: House,
-  activeFor: ['/invoices'],
-}
+export const overviewNav: NavItem = { to: '/', label: 'Overview', icon: House }
 export const templatesNav: NavItem = { to: '/templates', label: 'Templates', icon: LayoutTemplate }
 export const clientsNav: NavItem = { to: '/clients', label: 'Clients', icon: Users }
 export const settingsNav: NavItem = { to: '/settings', label: 'Settings', icon: Settings }
@@ -25,9 +18,8 @@ export const railSystem = [settingsNav]
 /** Mobile tab bar, in design order. */
 export const tabs = [overviewNav, templatesNav, clientsNav, settingsNav]
 
+/** Overview is active only on `/`; the invoice editor highlights no item. */
 export function isNavActive(item: NavItem, pathname: string): boolean {
-  if (item.to === '/') {
-    return pathname === '/' || (item.activeFor ?? []).some((p) => pathname.startsWith(p))
-  }
+  if (item.to === '/') return pathname === '/'
   return pathname === item.to || pathname.startsWith(`${item.to}/`)
 }

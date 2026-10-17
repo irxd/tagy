@@ -26,6 +26,15 @@ test('main navigation reaches every area', async ({ page }) => {
   }
 })
 
+test('the invoice editor highlights no navigation item', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'the mobile editor hides the tab bar')
+  await page.goto('/invoices/new')
+  await expect(page).toHaveURL(/\/invoices\/[\w-]{36}/)
+  const nav = page.getByRole('navigation', { name: 'Main' })
+  await expect(nav.getByRole('link', { name: 'Overview' })).toBeVisible()
+  await expect(nav.locator('[aria-current]')).toHaveCount(0)
+})
+
 test('deep links survive a reload', async ({ page }) => {
   await page.goto('/clients')
   await page.reload()
