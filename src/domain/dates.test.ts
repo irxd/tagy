@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, daysBetween, dueDateFor, formatDate, todayISO } from './dates'
+import { addDays, daysBetween, dueDateFor, formatDate, timeAgo, todayISO } from './dates'
 
 describe('dates', () => {
   it('formats today as a local calendar date', () => {
@@ -31,5 +31,13 @@ describe('dates', () => {
     expect(formatDate('2026-10-16', 'MMM d, yyyy')).toBe('Oct 16, 2026')
     expect(formatDate('2026-10-02', 'd MMM')).toBe('2 Oct')
     expect(formatDate('2026-10-02', 'dd/MM/yyyy')).toBe('02/10/2026')
+  })
+
+  it('describes how long ago a timestamp was', () => {
+    const now = new Date(2026, 9, 17, 9, 0)
+    expect(timeAgo(new Date(2026, 9, 17, 8, 0).toISOString(), now)).toBe('Today')
+    expect(timeAgo(new Date(2026, 9, 16, 23, 0).toISOString(), now)).toBe('Yesterday')
+    expect(timeAgo(new Date(2026, 9, 14, 12, 0).toISOString(), now)).toBe('3 days ago')
+    expect(timeAgo(new Date(2026, 8, 1, 12, 0).toISOString(), now)).toBe('01 Sep, 2026')
   })
 })

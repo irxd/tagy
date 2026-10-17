@@ -148,6 +148,8 @@ export interface ConfirmProps extends Omit<OverlayProps, 'actions'> {
   confirmIcon?: LucideIcon
   confirmVariant?: ButtonVariant
   cancelLabel?: string
+  /** e.g. until a typed confirmation matches. */
+  confirmDisabled?: boolean
   onConfirm: () => void
 }
 
@@ -157,6 +159,7 @@ export function ConfirmDialog({
   confirmIcon,
   confirmVariant = 'danger',
   cancelLabel = 'Cancel',
+  confirmDisabled,
   onConfirm,
   ...overlay
 }: ConfirmProps) {
@@ -173,6 +176,7 @@ export function ConfirmDialog({
             size={size}
             variant={confirmVariant}
             icon={confirmIcon}
+            disabled={confirmDisabled}
             onClick={() => {
               onConfirm()
               overlay.onOpenChange(false)

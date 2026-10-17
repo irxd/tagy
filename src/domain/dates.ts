@@ -63,3 +63,15 @@ export function formatDate(date: ISODate, pattern = 'dd MMM, yyyy'): string {
   }
   return pattern.replace(/yyyy|MMM|MM|dd|d/g, (t) => tokens[t]!)
 }
+
+/**
+ * Short "how long ago" for a past timestamp, in calendar days:
+ * Today · Yesterday · 3 days ago · then the date itself after 30 days.
+ */
+export function timeAgo(timestamp: string, now = new Date()): string {
+  const days = daysBetween(todayISO(new Date(timestamp)), todayISO(now))
+  if (days <= 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  if (days < 30) return `${days} days ago`
+  return formatDate(todayISO(new Date(timestamp)))
+}

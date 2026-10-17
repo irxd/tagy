@@ -108,7 +108,7 @@ export function TextAreaField({
     <FieldFrame id={id} label={label} error={error} hint={hint} className={className}>
       <textarea
         rows={3}
-        className={cn(valueClass, 'resize-none font-medium leading-relaxed')}
+        className={cn(valueClass, 'resize-none text-sm leading-relaxed font-normal')}
         {...a11y(id, error)}
         {...textarea}
       />

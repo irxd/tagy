@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { cn } from './cn'
 
-export type ButtonVariant = 'primary' | 'dark' | 'soft' | 'outline' | 'danger'
+export type ButtonVariant = 'primary' | 'dark' | 'soft' | 'outline' | 'danger' | 'danger-soft'
 
 const variants: Record<ButtonVariant, string> = {
   primary: 'bg-tile-accent text-white hover:bg-tile-accent-ink',
@@ -10,6 +10,7 @@ const variants: Record<ButtonVariant, string> = {
   soft: 'bg-tile-tile text-tile-fg hover:bg-tile-tile-strong',
   outline: 'border border-tile-border-strong bg-tile-panel text-tile-fg hover:bg-tile-tile',
   danger: 'bg-tile-danger text-white hover:bg-tile-danger/90',
+  'danger-soft': 'bg-tile-danger-soft text-tile-danger hover:bg-tile-danger/15',
 }
 
 const sizes = {
