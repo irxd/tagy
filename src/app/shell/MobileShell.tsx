@@ -17,7 +17,7 @@ export function MobileShell() {
       {showTabs && (
         <nav
           aria-label="Main"
-          className="fixed inset-x-0 bottom-0 px-4 pb-[max(12px,env(safe-area-inset-bottom))]"
+          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-[max(12px,env(safe-area-inset-bottom))]"
         >
           <ul className="mx-auto flex h-16 max-w-md items-center gap-0.5 rounded-full border border-tile-border bg-white/85 p-1.5 shadow-tile-float backdrop-blur-xl">
             {tabs.map((item) => {
