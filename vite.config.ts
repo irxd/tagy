@@ -42,6 +42,11 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    // The largest chunk is the PDF engine (~1.2 MB, 450 KB gzipped), which
+    // loads only when a PDF is first downloaded. The start chunk is ~180 KB.
+    chunkSizeWarningLimit: 1300,
+  },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },

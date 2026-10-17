@@ -1,19 +1,15 @@
 import { DatabaseBackup, Download, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
-import {
-  BackupError,
-  createBackup,
-  markBackedUp,
-  parseBackup,
-  restoreBackup,
-  type ParsedBackup,
-} from '@/db/backup'
+import type { ParsedBackup } from '@/db/backup'
 import { formatDate, todayISO } from '@/domain/dates'
 import { saveFile } from '@/lib/saveFile'
 import { Button } from '@/ui/Button'
 import { ConfirmDialog } from '@/ui/Overlay'
 import { useToast } from '@/ui/toastContext'
+
+/** The backup module (with its Zod schema) loads on first use only. */
+const loadBackup = () => import('@/db/backup')
 
 /**
  * Export backup / Import backup, usable anywhere: `exportNow` saves the
@@ -30,6 +26,7 @@ export function useBackup() {
   async function exportNow() {
     setBusy(true)
     try {
+      const { createBackup, markBackedUp } = await loadBackup()
       const file = await createBackup()
       saveFile(
         new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' }),
@@ -47,6 +44,7 @@ export function useBackup() {
   async function onFile(file: File | undefined) {
     if (input.current) input.current.value = ''
     if (!file) return
+    const { BackupError, parseBackup } = await loadBackup()
     try {
       setPending(parseBackup(await file.text()))
     } catch (error) {
@@ -80,6 +78,7 @@ export function useBackup() {
           confirmVariant="dark"
           onConfirm={async () => {
             try {
+              const { restoreBackup } = await loadBackup()
               await restoreBackup(pending.file)
               navigate('/')
               toast({
