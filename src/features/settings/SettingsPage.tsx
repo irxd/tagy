@@ -49,6 +49,8 @@ export function SettingsPage() {
 /** Desktop · Settings — two-column bento of section cards. */
 function DesktopSettings({ onCleared }: { onCleared: () => void }) {
   const form = useSettingsDraft()
+  // Render header and cards together once settings load, so nothing jumps.
+  if (!form.draft) return null
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Settings" subtitle={SUBTITLE} actions={<SaveIndicator />} />

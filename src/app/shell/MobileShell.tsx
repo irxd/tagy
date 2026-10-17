@@ -31,7 +31,7 @@ export function MobileShell() {
                     className={cn(
                       'flex h-[52px] flex-col items-center justify-center gap-[3px] rounded-[26px] text-[10px]',
                       active
-                        ? 'bg-tile-accent-soft font-bold text-tile-accent'
+                        ? 'bg-tile-accent-soft font-bold text-tile-accent-ink'
                         : 'font-medium text-tile-muted',
                     )}
                   >

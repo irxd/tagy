@@ -160,7 +160,7 @@ function LogoTile({ name, logoBlobId }: { name: string; logoBlobId: string | nul
         </Button>
         {url && <IconButton icon={X} label="Remove logo" onClick={() => removeLogo()} />}
       </div>
-      {error && <p className="px-1 text-xs font-medium text-tile-danger">{error}</p>}
+      {error && <p className="px-1 text-xs font-medium text-tile-danger-ink">{error}</p>}
     </div>
   )
 }

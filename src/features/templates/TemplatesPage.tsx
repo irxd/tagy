@@ -192,7 +192,7 @@ function TemplateChooser({
               </span>
               {!mobile && <span className="text-[13px] text-tile-muted">{DESCRIPTIONS[t]}</span>}
               {!mobile && t === defaultId && (
-                <span className="w-fit rounded-full bg-tile-tile-strong px-2 py-0.5 text-[11px] font-semibold text-tile-muted">
+                <span className="w-fit rounded-full bg-tile-tile-strong px-2 py-0.5 text-[11px] font-semibold text-tile-fg">
                   Default
                 </span>
               )}

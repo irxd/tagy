@@ -27,7 +27,7 @@ type Tone = 'default' | 'accent' | 'danger'
 const iconTones: Record<Tone, string> = {
   default: 'bg-tile-tile text-tile-fg',
   accent: 'bg-tile-accent-soft text-tile-accent',
-  danger: 'bg-tile-danger-soft text-tile-danger',
+  danger: 'bg-tile-danger-soft text-tile-danger-ink',
 }
 
 interface RowContentProps {
@@ -59,7 +59,7 @@ function RowContent({
         <span
           className={cn(
             'text-[15px] font-semibold',
-            tone === 'danger' ? 'text-tile-danger' : 'text-tile-fg',
+            tone === 'danger' ? 'text-tile-danger-ink' : 'text-tile-fg',
           )}
         >
           {title}

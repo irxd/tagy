@@ -16,7 +16,8 @@
   --color-tile-border: #e9ebee;
   --color-tile-border-strong: #d9dce1;
   --color-tile-fg: #111214;
-  --color-tile-muted: #6b7079;
+  /* Design value #6b7079, darkened slightly to pass WCAG AA (4.5:1) on tile and canvas. */
+  --color-tile-muted: #60656e;
   --color-tile-subtle: #9ea3ac;
   --color-tile-accent: #2563ff;
   --color-tile-accent-ink: #1a4fe0;
@@ -25,10 +26,16 @@
   --color-tile-orange-soft: #ffeee6;
   --color-tile-success: #15994a;
   --color-tile-success-soft: #e5f6eb;
+  --color-tile-success-ink: #0e7a3a;
   --color-tile-warning: #c9700a;
   --color-tile-warning-soft: #fdf1df;
+  --color-tile-warning-ink: #9a5200;
   --color-tile-danger: #e0294a;
   --color-tile-danger-soft: #fde8ec;
+  --color-tile-danger-ink: #c4183a;
+
+  /* The *-ink tones are for text: the bright tones above stay for dots,
+     icons and fills, where AA contrast for text doesn't apply. */
 
   --radius-tile-sm: 8px;
   --radius-tile-md: 12px;

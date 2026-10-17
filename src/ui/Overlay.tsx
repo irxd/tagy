@@ -32,8 +32,8 @@ export interface OverlayProps {
 
 const iconTones = {
   default: 'bg-tile-accent-soft text-tile-accent',
-  danger: 'bg-tile-danger-soft text-tile-danger',
-  success: 'bg-tile-success-soft text-tile-success',
+  danger: 'bg-tile-danger-soft text-tile-danger-ink',
+  success: 'bg-tile-success-soft text-tile-success-ink',
 }
 
 export function Overlay(props: OverlayProps) {

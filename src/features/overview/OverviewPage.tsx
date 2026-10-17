@@ -14,7 +14,7 @@ import {
   Upload,
   WandSparkles,
 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { lazy, Suspense, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useBlobUrl } from '@/db/hooks'
 import { clearSampleData } from '@/db/sample'
@@ -36,7 +36,6 @@ import { PageHeader } from '@/ui/PageHeader'
 import { StatusBadge } from '@/ui/Status'
 import { useToast } from '@/ui/toastContext'
 import { useLayout } from '@/ui/useLayout'
-import { FirstVisit } from './FirstVisit'
 import { useRowActions } from './rowActions'
 import { useOverview, type InvoiceRow, type Overview } from './useOverview'
 
@@ -49,6 +48,9 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'paid', label: 'Paid' },
 ]
 
+// Only shown before the first invoice; it renders the templates, so load it on demand.
+const FirstVisit = lazy(() => import('./FirstVisit').then((m) => ({ default: m.FirstVisit })))
+
 const avatarTone = (s: DisplayStatus) =>
   s === 'overdue' ? 'danger' : s === 'paid' ? 'quiet' : 'ink'
 
@@ -56,7 +58,12 @@ export function OverviewPage() {
   const overview = useOverview()
   const layout = useLayout()
   if (!overview) return null
-  if (overview.empty) return <FirstVisit />
+  if (overview.empty)
+    return (
+      <Suspense fallback={null}>
+        <FirstVisit />
+      </Suspense>
+    )
   return layout === 'desktop' ? <DesktopOverview o={overview} /> : <MobileOverview o={overview} />
 }
 
@@ -266,7 +273,7 @@ function BackupReminder({ o }: { o: Overview }) {
       aria-label="Backup reminder"
       className="flex flex-wrap items-center gap-3 rounded-tile-lg bg-tile-warning-soft px-4 py-3"
     >
-      <DatabaseBackup size={18} className="shrink-0 text-tile-warning" aria-hidden />
+      <DatabaseBackup size={18} className="shrink-0 text-tile-warning-ink" aria-hidden />
       <p className="min-w-0 flex-1 text-sm font-semibold text-tile-fg">
         {o.settings.lastBackupAt
           ? `Your last backup was ${timeAgo(o.settings.lastBackupAt).toLowerCase()}.`
@@ -418,7 +425,7 @@ function DesktopOverview({ o }: { o: Overview }) {
             <Stat
               label="Overdue"
               value={
-                <span className={o.stats.counts.overdue ? 'text-tile-danger' : undefined}>
+                <span className={o.stats.counts.overdue ? 'text-tile-danger-ink' : undefined}>
                   {o.stats.counts.overdue}
                 </span>
               }
@@ -468,7 +475,7 @@ function BigFigure({ value, label, warn }: { value: string; label: string; warn?
       <span
         className={cn(
           'truncate text-[28px] font-bold tracking-[-0.6px] tabular-nums',
-          warn && 'text-tile-warning',
+          warn && 'text-tile-warning-ink',
         )}
       >
         {value}
@@ -495,7 +502,9 @@ function DesktopRow({ row, o, menu }: { row: InvoiceRow; o: Overview; menu: Reac
         </span>
         <span className="flex flex-col gap-0.5">
           <span className="text-[13px] text-tile-muted">{status === 'paid' ? 'Paid' : 'Due'}</span>
-          <span className={cn('text-[15px] font-bold', status === 'overdue' && 'text-tile-danger')}>
+          <span
+            className={cn('text-[15px] font-bold', status === 'overdue' && 'text-tile-danger-ink')}
+          >
             {status === 'paid'
               ? invoice.paidAt
                 ? o.date(invoice.paidAt)
@@ -653,8 +662,8 @@ function MobileOverview({ o }: { o: Overview }) {
               className={cn(
                 'inline-flex shrink-0 items-center gap-1 rounded-full px-[9px] py-1 text-xs font-bold',
                 trend >= 0
-                  ? 'bg-tile-success-soft text-tile-success'
-                  : 'bg-tile-danger-soft text-tile-danger',
+                  ? 'bg-tile-success-soft text-tile-success-ink'
+                  : 'bg-tile-danger-soft text-tile-danger-ink',
               )}
               title="Compared with the previous period"
             >
@@ -675,14 +684,14 @@ function MobileOverview({ o }: { o: Overview }) {
           <Stat label="Paid" value={o.money(o.stats.paid)} />
           <Stat
             label="Unpaid"
-            value={<span className="text-tile-warning">{o.money(o.stats.unpaid)}</span>}
+            value={<span className="text-tile-warning-ink">{o.money(o.stats.unpaid)}</span>}
           />
         </div>
         {o.stats.counts.overdue > 0 && (
           <button
             type="button"
             onClick={() => list.setFilter('overdue')}
-            className="flex items-center gap-2.5 rounded-tile-md bg-tile-danger-soft px-3 py-2.5 text-sm font-semibold text-tile-danger"
+            className="flex items-center gap-2.5 rounded-tile-md bg-tile-danger-soft px-3 py-2.5 text-sm font-semibold text-tile-danger-ink"
           >
             <CircleAlert size={17} aria-hidden />
             <span className="flex-1 text-left">
@@ -701,7 +710,7 @@ function MobileOverview({ o }: { o: Overview }) {
             <button
               type="button"
               onClick={() => setShowAll((s) => !s)}
-              className="text-sm font-semibold text-tile-accent"
+              className="text-sm font-semibold text-tile-accent-ink"
             >
               {showAll ? 'Show less' : 'See all'}
             </button>
@@ -731,7 +740,7 @@ function MobileOverview({ o }: { o: Overview }) {
                       <span
                         className={cn(
                           'truncate text-xs',
-                          due.late ? 'text-tile-danger' : 'text-tile-muted',
+                          due.late ? 'text-tile-danger-ink' : 'text-tile-muted',
                         )}
                       >
                         {row.invoice.number} · {due.text}

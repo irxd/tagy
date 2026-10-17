@@ -48,7 +48,7 @@ function FieldFrame({ id, label, error, hint, trailing, className, children }: F
         {trailing}
       </div>
       {error ? (
-        <p id={`${id}-error`} className="px-1 text-xs font-medium text-tile-danger">
+        <p id={`${id}-error`} className="px-1 text-xs font-medium text-tile-danger-ink">
           {error}
         </p>
       ) : (

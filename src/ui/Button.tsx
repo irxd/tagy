@@ -10,7 +10,7 @@ const variants: Record<ButtonVariant, string> = {
   soft: 'bg-tile-tile text-tile-fg hover:bg-tile-tile-strong',
   outline: 'border border-tile-border-strong bg-tile-panel text-tile-fg hover:bg-tile-tile',
   danger: 'bg-tile-danger text-white hover:bg-tile-danger/90',
-  'danger-soft': 'bg-tile-danger-soft text-tile-danger hover:bg-tile-danger/15',
+  'danger-soft': 'bg-tile-danger-soft text-tile-danger-ink hover:bg-tile-danger/15',
 }
 
 const sizes = {

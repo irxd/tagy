@@ -55,14 +55,11 @@ export function PreviewPane({
         className,
       )}
     >
-      <button
-        type="button"
-        aria-label="Open full preview"
-        onClick={() => onExpandedChange(true)}
-        className="h-fit cursor-zoom-in rounded-[4px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tile-accent"
-      >
+      {/* Clicking the page opens the full preview; keyboard and screen-reader
+          users have the Expand button, so the page itself stays plain content. */}
+      <div onClick={() => onExpandedChange(true)} className="h-fit cursor-zoom-in">
         <ScaledPage view={view} zoom={416 / PAGE_WIDTH} />
-      </button>
+      </div>
       <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1.5 text-xs font-semibold">
         <span className="size-[7px] rounded-full bg-tile-success" aria-hidden />
         Live · {view.paper === 'a4' ? 'A4' : 'Letter'}

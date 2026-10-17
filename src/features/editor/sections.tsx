@@ -309,14 +309,14 @@ function ItemRow({
           placeholder="Item name"
           value={item.title}
           onChange={(e) => onChange({ title: e.target.value })}
-          className="w-full min-w-0 bg-transparent text-[15px] font-bold outline-none placeholder:font-semibold placeholder:text-tile-subtle"
+          className="min-h-6 w-full min-w-0 bg-transparent text-[15px] font-bold outline-none placeholder:font-semibold placeholder:text-tile-subtle"
         />
         <input
           aria-label={`Item ${n} description`}
           placeholder="Description (optional)"
           value={item.description}
           onChange={(e) => onChange({ description: e.target.value })}
-          className="w-full min-w-0 bg-transparent text-[13px] text-tile-muted outline-none placeholder:text-tile-subtle"
+          className="min-h-6 w-full min-w-0 bg-transparent text-[13px] text-tile-muted outline-none placeholder:text-tile-subtle"
         />
       </div>
       <label className="flex shrink-0 items-center gap-1 rounded-full bg-tile-tile px-2.5 py-[5px] text-[13px] focus-within:outline-2 focus-within:outline-tile-accent">

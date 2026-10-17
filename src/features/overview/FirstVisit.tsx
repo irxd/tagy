@@ -106,7 +106,7 @@ export function FirstVisit() {
               <span className="text-xs text-tile-muted">{s.sub}</span>
             </span>
             {s.done ? (
-              <CircleCheck size={16} className="text-tile-success" aria-label="Done" />
+              <CircleCheck size={16} className="text-tile-success-ink" aria-label="Done" />
             ) : (
               <ArrowRight size={16} className="text-tile-subtle" aria-hidden />
             )}
@@ -125,7 +125,7 @@ export function FirstVisit() {
             <span className="flex items-center justify-between">
               <StepNumber n={i + 1} done={s.done} />
               {s.done ? (
-                <CircleCheck size={15} className="text-tile-success" aria-label="Done" />
+                <CircleCheck size={15} className="text-tile-success-ink" aria-label="Done" />
               ) : (
                 <ArrowRight size={15} className="text-tile-muted" aria-hidden />
               )}

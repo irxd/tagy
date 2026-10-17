@@ -304,7 +304,7 @@ function ClientStep() {
               .join(' · ')}
           </span>
         </div>
-        <Link to="/settings/business" className="text-sm font-semibold text-tile-accent">
+        <Link to="/settings/business" className="text-sm font-semibold text-tile-accent-ink">
           Edit
         </Link>
       </div>
@@ -507,14 +507,14 @@ function ItemsStep() {
                   placeholder="Item name"
                   value={item.title}
                   onChange={(e) => update(item.id, { title: e.target.value })}
-                  className="w-full min-w-0 bg-transparent text-[15px] font-bold outline-none placeholder:text-tile-subtle"
+                  className="min-h-6 w-full min-w-0 bg-transparent text-[15px] font-bold outline-none placeholder:text-tile-subtle"
                 />
                 <input
                   aria-label={`Item ${i + 1} description`}
                   placeholder="Description (optional)"
                   value={item.description}
                   onChange={(e) => update(item.id, { description: e.target.value })}
-                  className="w-full min-w-0 bg-transparent text-[13px] text-tile-muted outline-none placeholder:text-tile-subtle"
+                  className="min-h-6 w-full min-w-0 bg-transparent text-[13px] text-tile-muted outline-none placeholder:text-tile-subtle"
                 />
               </div>
               <Menu
@@ -647,16 +647,15 @@ function ReviewStep({ onStep, onPreview }: { onStep: (s: Step) => void; onPrevie
         <StatusBlock />
       )}
       <div className="relative overflow-hidden rounded-[22px] bg-linear-to-b from-[#e9ecf1] to-[#dce1e8] pt-12">
-        <button
-          type="button"
-          aria-label="Open full preview"
+        {/* Tapping the page opens the full preview; the Expand button does the same for keyboard and screen readers. */}
+        <div
           onClick={onPreview}
-          className="block max-h-[300px] w-full overflow-hidden px-4"
+          className="block max-h-[300px] w-full cursor-zoom-in overflow-hidden px-4"
         >
           <div className="mx-auto w-fit">
             <ScaledPage view={view} zoom={(358 - 32) / PAGE_WIDTH} />
           </div>
-        </button>
+        </div>
         <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1.5 text-xs font-semibold">
           <span className="size-[7px] rounded-full bg-tile-success" aria-hidden />
           {TEMPLATE_LABELS[invoice.templateId]} · {view.paper === 'a4' ? 'A4' : 'Letter'}
@@ -805,7 +804,7 @@ function StatusBlock() {
           <span
             className={cn(
               'text-[13px] font-semibold',
-              late ? 'text-tile-danger' : 'text-tile-muted',
+              late ? 'text-tile-danger-ink' : 'text-tile-muted',
             )}
           >
             {status === 'paid'
@@ -822,14 +821,16 @@ function StatusBlock() {
           <CircleCheck size={14} aria-hidden /> Draft
           <span className="font-normal text-tile-muted">{short(invoice.createdAt)}</span>
         </li>
-        <li className={cn('flex items-center gap-1.5 font-bold', late ? 'text-tile-danger' : '')}>
+        <li
+          className={cn('flex items-center gap-1.5 font-bold', late ? 'text-tile-danger-ink' : '')}
+        >
           <Send size={14} aria-hidden /> {late ? 'Overdue' : 'Sent'}
           <span className="font-normal text-tile-muted">{short(invoice.sentAt)}</span>
         </li>
         <li
           className={cn(
             'flex items-center gap-1.5 font-bold',
-            status === 'paid' ? 'text-tile-success' : 'text-tile-muted',
+            status === 'paid' ? 'text-tile-success-ink' : 'text-tile-muted',
           )}
         >
           <CircleCheck size={14} aria-hidden /> Paid

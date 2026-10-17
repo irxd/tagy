@@ -247,7 +247,7 @@ function HeroFigure({ value, label, danger }: { value: string; label: string; da
       <span
         className={cn(
           'truncate text-[28px] font-bold tracking-[-0.6px] tabular-nums',
-          danger ? 'text-tile-danger' : 'text-tile-fg',
+          danger ? 'text-tile-danger-ink' : 'text-tile-fg',
         )}
       >
         {value}
@@ -268,9 +268,9 @@ function PaidBanner({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-tile-md bg-tile-success-soft py-2.5 pr-2.5 pl-3.5">
-      <CircleCheckBig size={20} className="shrink-0 text-tile-success" aria-hidden />
+      <CircleCheckBig size={20} className="shrink-0 text-tile-success-ink" aria-hidden />
       <div className="flex min-w-0 flex-1 flex-col gap-px">
-        <span className="text-sm font-bold text-tile-success">Paid on {paidOn}</span>
+        <span className="text-sm font-bold text-tile-success-ink">Paid on {paidOn}</span>
         {detail && <span className="truncate text-xs text-tile-muted">{detail}</span>}
       </div>
       <Button variant="outline" icon={Undo2} onClick={onUndo}>

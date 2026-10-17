@@ -6,11 +6,15 @@ import { cn } from './cn'
 
 const tones: Record<DisplayStatus, { label: string; chip: string; dot: string }> = {
   draft: { label: 'Draft', chip: 'bg-tile-tile text-tile-muted', dot: 'bg-tile-muted' },
-  sent: { label: 'Sent', chip: 'bg-tile-accent-soft text-tile-accent', dot: 'bg-tile-accent' },
-  paid: { label: 'Paid', chip: 'bg-tile-success-soft text-tile-success', dot: 'bg-tile-success' },
+  sent: { label: 'Sent', chip: 'bg-tile-accent-soft text-tile-accent-ink', dot: 'bg-tile-accent' },
+  paid: {
+    label: 'Paid',
+    chip: 'bg-tile-success-soft text-tile-success-ink',
+    dot: 'bg-tile-success',
+  },
   overdue: {
     label: 'Overdue',
-    chip: 'bg-tile-danger-soft text-tile-danger',
+    chip: 'bg-tile-danger-soft text-tile-danger-ink',
     dot: 'bg-tile-danger',
   },
 }
@@ -89,8 +93,8 @@ export interface StepProps {
 const stepTones = {
   fg: 'text-tile-fg',
   accent: 'text-tile-accent',
-  danger: 'text-tile-danger',
-  success: 'text-tile-success',
+  danger: 'text-tile-danger-ink',
+  success: 'text-tile-success-ink',
 }
 
 /** Tile/Step — progress bar over icon, label and date. */

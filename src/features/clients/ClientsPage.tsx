@@ -273,7 +273,7 @@ function SummaryTile({ label, value, warn }: { label: string; value: string; war
       <span
         className={cn(
           'truncate text-[17px] font-bold tabular-nums',
-          warn ? 'text-tile-warning' : 'text-tile-fg',
+          warn ? 'text-tile-warning-ink' : 'text-tile-fg',
         )}
       >
         {value}

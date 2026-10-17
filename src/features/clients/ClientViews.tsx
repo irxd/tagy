@@ -87,7 +87,9 @@ function Figure({
   label: string
   tone?: 'fg' | 'danger' | 'subtle'
 }) {
-  const color = { fg: 'text-tile-fg', danger: 'text-tile-danger', subtle: 'text-tile-subtle' }[tone]
+  const color = { fg: 'text-tile-fg', danger: 'text-tile-danger-ink', subtle: 'text-tile-subtle' }[
+    tone
+  ]
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
       <span className={cn('truncate text-[22px] font-bold tracking-[-0.5px] tabular-nums', color)}>
@@ -131,7 +133,7 @@ export function ClientListRow({ row, locale, onOpen }: ViewProps) {
             className={cn(
               'text-[15px] font-bold tabular-nums',
               stats.overdue
-                ? 'text-tile-danger'
+                ? 'text-tile-danger-ink'
                 : stats.unpaid
                   ? 'text-tile-fg'
                   : 'text-tile-subtle',

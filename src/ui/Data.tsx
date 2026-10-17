@@ -68,9 +68,9 @@ export function Figure({
 }) {
   const color = {
     fg: 'text-tile-fg',
-    success: 'text-tile-success',
+    success: 'text-tile-success-ink',
     orange: 'text-tile-orange',
-    danger: 'text-tile-danger',
+    danger: 'text-tile-danger-ink',
   }[tone]
   return (
     <div className={cn('flex flex-col gap-[3px]', className)}>

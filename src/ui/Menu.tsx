@@ -58,7 +58,7 @@ export function MenuItem({
       className={cn(
         'flex cursor-pointer items-center gap-2.5 rounded-[10px] px-2.5 py-[9px] outline-none select-none',
         'data-[highlighted]:bg-tile-tile',
-        tone === 'danger' ? 'text-tile-danger' : 'text-tile-fg',
+        tone === 'danger' ? 'text-tile-danger-ink' : 'text-tile-fg',
       )}
     >
       <Icon size={17} className="shrink-0" aria-hidden />
