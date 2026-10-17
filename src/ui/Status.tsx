@@ -15,19 +15,36 @@ const tones: Record<DisplayStatus, { label: string; chip: string; dot: string }>
   },
 }
 
-/** Tile/Status/Draft · Sent · Paid · Overdue — dot + label pill. */
-export function StatusBadge({ status, className }: { status: DisplayStatus; className?: string }) {
+/**
+ * Tile/Status/Draft · Sent · Paid · Overdue — dot + label pill. `label`
+ * reuses a tone with other words (a client's "All paid"); `sm` is the
+ * compact pill in mobile list rows.
+ */
+export function StatusBadge({
+  status,
+  label,
+  size = 'md',
+  className,
+}: {
+  status: DisplayStatus
+  label?: string
+  size?: 'md' | 'sm'
+  className?: string
+}) {
   const tone = tones[status]
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full py-[5px] pr-[11px] pl-[9px] text-[13px] font-semibold',
+        'inline-flex shrink-0 items-center gap-1.5 rounded-full font-semibold whitespace-nowrap',
+        size === 'md'
+          ? 'py-[5px] pr-[11px] pl-[9px] text-[13px]'
+          : 'py-[3px] pr-2 pl-[7px] text-[11px]',
         tone.chip,
         className,
       )}
     >
       <span className={cn('size-[7px] rounded-full', tone.dot)} aria-hidden />
-      {tone.label}
+      {label ?? tone.label}
     </span>
   )
 }

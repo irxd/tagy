@@ -40,13 +40,23 @@ export function MiniChip({ children, className }: { children: ReactNode; classNa
   )
 }
 
-/** Tile/Filter — pill with a count bubble; dark when active. */
+/**
+ * Tile/Filter — pill with a count bubble; dark when active. On the canvas
+ * background (mobile) inactive pills sit on `panel` white instead of `tile`.
+ */
 export function FilterPill({
   active,
   count,
+  surface = 'tile',
   children,
+  className,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean; count?: number }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  active: boolean
+  count?: number
+  surface?: 'tile' | 'panel'
+}) {
+  const onPanel = surface === 'panel'
   return (
     <button
       type="button"
@@ -54,7 +64,12 @@ export function FilterPill({
       className={cn(
         'inline-flex shrink-0 items-center gap-[7px] rounded-full py-2 pr-3 pl-3.5 text-sm font-semibold transition-colors',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tile-accent',
-        active ? 'bg-tile-fg text-white' : 'bg-tile-tile text-tile-fg hover:bg-tile-tile-strong',
+        active
+          ? 'bg-tile-fg text-white'
+          : onPanel
+            ? 'bg-tile-panel text-tile-fg hover:bg-tile-tile'
+            : 'bg-tile-tile text-tile-fg hover:bg-tile-tile-strong',
+        className,
       )}
       {...props}
     >
@@ -63,7 +78,11 @@ export function FilterPill({
         <span
           className={cn(
             'rounded-full px-[7px] py-px text-xs font-semibold',
-            active ? 'bg-white/15 text-white' : 'bg-tile-panel text-tile-muted',
+            active
+              ? 'bg-white/15 text-white'
+              : onPanel
+                ? 'bg-tile-tile text-tile-muted'
+                : 'bg-tile-panel text-tile-muted',
           )}
         >
           {count}

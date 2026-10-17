@@ -2,12 +2,27 @@ import type { ReactNode } from 'react'
 import { cn } from './cn'
 import { initials } from './initials'
 
-/** Round initials badge (Tile/Party → Logo). */
-export function Avatar({ name, className }: { name: string; className?: string }) {
+const avatarTones = {
+  ink: 'bg-tile-fg text-white',
+  danger: 'bg-tile-danger text-white',
+  quiet: 'bg-tile-tile-strong text-tile-fg',
+}
+
+/** Round initials badge (Tile/Party → Logo). Red flags overdue, grey means settled. */
+export function Avatar({
+  name,
+  tone = 'ink',
+  className,
+}: {
+  name: string
+  tone?: keyof typeof avatarTones
+  className?: string
+}) {
   return (
     <span
       className={cn(
-        'grid size-9 shrink-0 place-items-center rounded-full bg-tile-fg text-xs font-bold text-white',
+        'grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold',
+        avatarTones[tone],
         className,
       )}
       aria-hidden
