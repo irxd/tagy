@@ -763,7 +763,13 @@ function Studio(ctx: Ctx) {
   return (
     <Page
       size={PAPER_PT[view.paper].size}
-      style={{ fontFamily: text, color: INK, fontSize: u(9), lineHeight: 1.3, flexDirection: 'row' }}
+      style={{
+        fontFamily: text,
+        color: INK,
+        fontSize: u(9),
+        lineHeight: 1.3,
+        flexDirection: 'row',
+      }}
     >
       {/* The rail is fixed so it continues down every page. */}
       <View
