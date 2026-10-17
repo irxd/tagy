@@ -10,7 +10,7 @@ export function MobileShell() {
 
   return (
     <div className="min-h-dvh">
-      <main className={cn('px-4 pt-4', showTabs ? 'pb-28' : 'pb-6')}>
+      <main className={cn('px-4 pt-4', showTabs ? 'pb-28' : 'pb-0')}>
         <Outlet />
       </main>
 

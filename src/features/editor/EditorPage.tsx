@@ -9,6 +9,7 @@ import { Button } from '@/ui/Button'
 import { DropdownButton } from '@/ui/Chip'
 import { Menu, MenuItem } from '@/ui/Menu'
 import { useLayout } from '@/ui/useLayout'
+import { MobileEditor } from './MobileEditor'
 import { PreviewPane } from './preview'
 import { DetailsFields, ItemsCard, NotesCard, PaymentCard, SummaryCard } from './sections'
 import { HeroSummary, StatusMenu } from './StatusControls'
@@ -22,7 +23,10 @@ export function NewInvoicePage() {
   useEffect(() => {
     if (started.current) return
     started.current = true
-    void createInvoice().then((inv) => navigate(`/invoices/${inv.id}`, { replace: true }))
+    // Mobile starts the step flow at Client; desktop ignores the step.
+    void createInvoice().then((inv) =>
+      navigate(`/invoices/${inv.id}?step=client`, { replace: true }),
+    )
   }, [navigate])
   return null
 }
@@ -31,11 +35,12 @@ export function NewInvoicePage() {
 export function EditorPage() {
   const { id = '' } = useParams()
   const editor = useEditorState(id)
+  const layout = useLayout()
   if (editor === undefined) return null
   if (editor === null) return <Navigate to="/" replace />
   return (
     <EditorContext.Provider value={editor}>
-      <DesktopEditor />
+      {layout === 'desktop' ? <DesktopEditor /> : <MobileEditor />}
     </EditorContext.Provider>
   )
 }
@@ -53,7 +58,7 @@ function DesktopEditor() {
           <HeroSummary onPreview={() => setPreviewOpen(true)} />
           <div className="flex flex-col gap-3.5 px-1">
             <h2 className="text-lg font-bold tracking-[-0.3px]">Details</h2>
-            <DetailsFields columns={useLayout() === 'desktop' ? 4 : 2} />
+            <DetailsFields />
           </div>
         </div>
         <PreviewPane expanded={previewOpen} onExpandedChange={setPreviewOpen} />
