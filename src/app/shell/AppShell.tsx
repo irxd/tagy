@@ -1,4 +1,4 @@
-import { useLayout } from '@/app/useLayout'
+import { useLayout } from '@/ui/useLayout'
 import { DesktopShell } from './DesktopShell'
 import { MobileShell } from './MobileShell'
 
