@@ -4,6 +4,8 @@ import { db } from './db'
 import {
   createInvoice,
   deleteInvoice,
+  duplicateInvoice,
+  isNumberTaken,
   getInvoice,
   listInvoices,
   restoreInvoice,
@@ -119,5 +121,27 @@ describe('invoices', () => {
     await createInvoice({ issueDate: '2026-10-16' })
     const dates = (await listInvoices()).map((i) => i.issueDate)
     expect(dates).toEqual(['2026-10-16', '2026-09-01'])
+  })
+
+  it('duplicates as a fresh draft with copied items', async () => {
+    const source = await createInvoice({
+      status: 'paid',
+      paidAt: '2026-10-20',
+      items: [{ id: 'a', title: 'Logo', description: '', qty: 2, rate: 5_000 }],
+      notes: 'Thanks',
+    })
+    const copy = await duplicateInvoice(source.id)
+    expect(copy.number).not.toBe(source.number)
+    expect(copy).toMatchObject({ status: 'draft', paidAt: null, notes: 'Thanks' })
+    expect(copy.items[0]).toMatchObject({ title: 'Logo', qty: 2, rate: 5_000 })
+    expect(copy.items[0]!.id).not.toBe('a')
+    await expect(duplicateInvoice('missing')).rejects.toThrow()
+  })
+
+  it('checks whether a number is used by another invoice', async () => {
+    const a = await createInvoice()
+    expect(await isNumberTaken(a.number, a.id)).toBe(false)
+    expect(await isNumberTaken(a.number, 'other')).toBe(true)
+    expect(await isNumberTaken('INV-9999', a.id)).toBe(false)
   })
 })

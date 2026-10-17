@@ -26,8 +26,9 @@ export function useInvoices() {
   return useLiveQuery(listInvoices)
 }
 
+/** The invoice, `null` when it doesn't exist, `undefined` while loading. */
 export function useInvoice(id: string | undefined) {
-  return useLiveQuery(() => (id ? getInvoice(id) : undefined), [id])
+  return useLiveQuery(async () => (id ? ((await getInvoice(id)) ?? null) : null), [id])
 }
 
 export function useRecordCounts() {

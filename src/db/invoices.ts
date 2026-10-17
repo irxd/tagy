@@ -91,3 +91,32 @@ export async function deleteInvoice(id: string): Promise<Invoice | undefined> {
 export async function restoreInvoice(invoice: Invoice): Promise<void> {
   await db.invoices.put(invoice)
 }
+
+/**
+ * Duplicate: a new Draft with the same client, items and texts, the next
+ * number and today's dates. Status, payment and snapshots start fresh.
+ */
+export async function duplicateInvoice(id: string): Promise<Invoice> {
+  const source = await db.invoices.get(id)
+  if (!source) throw new Error(`Invoice ${id} not found`)
+  return createInvoice({
+    clientId: source.clientId,
+    terms: source.terms,
+    currency: source.currency,
+    items: source.items.map((item) => ({ ...item, id: crypto.randomUUID() })),
+    discountPct: source.discountPct,
+    taxRateId: source.taxRateId,
+    applyTax: source.applyTax,
+    showPaymentDetails: source.showPaymentDetails,
+    reference: source.reference,
+    notes: source.notes,
+    paymentDetails: source.paymentDetails,
+    templateId: source.templateId,
+  })
+}
+
+/** True when another invoice already uses this number (numbers are unique). */
+export async function isNumberTaken(number: string, exceptId: string): Promise<boolean> {
+  const match = await db.invoices.where('number').equals(number).first()
+  return !!match && match.id !== exceptId
+}
