@@ -2,6 +2,12 @@
 
 What was built in each phase, and where it differs from `build-plan.md`. Newest first.
 
+## After launch prep — changes from review
+
+- **Tax is set per invoice.** Before, an invoice pointed to a rate saved in Settings, so with no rate in Settings the editor's Tax field only offered "No tax". Now each invoice stores its own percent: the editor's Tax field is a percent box, new invoices start with the Settings default (if any), and Apply tax works without a Settings rate. Sent invoices need no tax snapshot any more. Existing data is upgraded in the browser (Dexie version 2) and old backups (schemaVersion 1) are upgraded on import; both keep the percent each invoice used.
+- The sample business is "Tagy Studio" instead of "Irsya Studio".
+- The empty Overview's three cards match the Clients empty state, and the mobile tab bar stays above raised page content.
+
 ## Phase 6 — Backup, offline, polish and launch prep (done, deploy pending)
 
 **Built**

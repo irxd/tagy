@@ -127,16 +127,16 @@ One Dexie database, `tagy`, with four stores; the handoff's entities map onto th
 
 **Fields** (from the handoff)
 
-- **Invoice**: id, number, status (`draft` \| `sent` \| `paid`), clientId, issueDate, dueDate, terms, currency, items[], discountPct, taxRateId, reference, notes, paymentDetails, templateId, sentAt, paidAt, paidMethod, paidNote, createdAt, updatedAt
+- **Invoice**: id, number, status (`draft` \| `sent` \| `paid`), clientId, issueDate, dueDate, terms, currency, items[], discountPct, taxPct, reference, notes, paymentDetails, templateId, sentAt, paidAt, paidMethod, paidNote, createdAt, updatedAt
 - **LineItem**: id, title, description, qty, rate
 - **Client**: id, name, contact, email, address, taxId, currency, terms, archived
 - **Business**: name, logo (blob ref), email, phone, address, taxId, website, paymentDetails
-- **Settings**: prefix, nextNumber, currency, terms, taxRates[], defaultTemplate, accent, font, paper, showFields{}, locale, dateFormat, lastBackupAt
+- **Settings**: prefix, nextNumber, currency, terms, defaultTaxPct, defaultTemplate, accent, font, paper, showFields{}, locale, dateFormat, lastBackupAt
 
 **Additions** (agreed, decision 10)
 
 - `invoice.clientSnapshot` and `invoice.businessSnapshot`: copied when the invoice is marked Sent, so editing a client later does not rewrite an invoice already sent.
-- `invoice.taxSnapshot` `{name, pct}`: a tax rate deleted or changed in Settings must not change old totals.
+- Tax: each invoice holds its own `taxPct` (changed after review, see `progress.md` → After launch prep), so a rate changed in Settings never changes old totals and needs no snapshot.
 - `invoice.applyTax`, `invoice.showPaymentDetails`: the editor's two Summary toggles have no field in the model.
 
 **Rules**
@@ -223,7 +223,7 @@ Status is set by the user; Overdue is computed. Transitions:
 
 - Business profile with logo upload: accept up to 5 MB, resize to 512 px longest side, store ≤ 1 MB.
 - Payment details text and "Add to new invoices by default".
-- Invoice defaults: prefix, next number with live preview ("Next invoice will be INV-0043"), currency, terms, tax rate(s), template, default notes.
+- Invoice defaults: prefix, next number with live preview ("Next invoice will be INV-0043"), currency, terms, default tax rate, template, default notes.
 - Region & format: date format and number format (via `Intl`). The Language selector sets the formatting locale only; the UI is English in v1.
 - Data & backup: counts, last backup, Export backup, Import, Clear all data (typed confirm).
 
