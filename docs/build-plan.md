@@ -269,11 +269,12 @@ Six phases, about 7 weeks (36 working days) for one developer; phase 3 is the fi
    - `domain/`: money (minor units, half-up), totals, numbering, due dates, derived status — 100% unit-test coverage
    - Tile components: buttons, fields, select, date, toggle, checkbox, chips, status chips, menu, dialog, sheet, toast
    - Exit: component gallery page matches `Tile — Components`; the design's worked example (12,927.60) passes as a test
-3. **Settings, clients and the editor (9 days)**
-   - Settings: business profile, logo resize, payment details, invoice defaults
-   - Clients grid, filters, new-client panel / sheet, archive
-   - Desktop editor: hero, details, items, summary, notes, autosave, live preview with one template (Bold)
-   - Mobile editor: 4 steps, flow header, action bar
+3. **Settings, clients and the editor (9 days)**, in five steps:
+   1. Settings: business profile, logo resize, payment details, invoice defaults, region & format, data counts and Clear all data; desktop bento, mobile grouped list with sub-pages; autosave with "All changes saved"
+   2. Clients: grid, filters, search, new / edit client panel (desktop) and sheet (mobile), archive, empty state
+   3. Desktop editor form: hero with status stepper, details, items, summary, notes and payment details, client picker, autosave
+   4. Live preview: Bold template in HTML beside the form
+   5. Mobile editor: 4 steps (Client → Details → Items → Review), flow header, sticky action bar
    - Exit: create an invoice end to end on both layouts and see it in the preview
 4. **Templates and PDF (8 days)**
    - View model, layout primitives, 4 templates in HTML and React-PDF
