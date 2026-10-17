@@ -110,3 +110,25 @@ test('recent items add a line from another invoice', async ({ page }) => {
   await page.getByRole('menuitem', { name: /^Work/ }).click()
   await expect(field(page, 'Item 4 name')).toHaveValue('Work')
 })
+
+test('the live preview follows edits', async ({ page }) => {
+  await openDesignInvoice(page)
+  const preview = page.getByRole('article', { name: 'Invoice INV-0042' })
+  await expect(preview).toContainText('$12,927.60')
+  await expect(preview).toContainText('Northwind Studio')
+
+  await field(page, 'Item 1 name').fill('Brand identity system')
+  await field(page, 'Discount').fill('0')
+  await expect(preview).toContainText('Brand identity system')
+  await expect(preview).toContainText('$13,608.00')
+  await expect(preview).not.toContainText('Discount (')
+})
+
+test('full preview opens the whole page and closes', async ({ page }) => {
+  await openDesignInvoice(page)
+  await page.getByRole('button', { name: 'Full preview', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Preview · INV-0042' })
+  await expect(dialog.getByRole('article')).toContainText('Payment details')
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+})

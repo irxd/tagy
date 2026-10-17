@@ -173,6 +173,7 @@ function PercentField({
       </span>
       <span className="flex items-baseline text-[15px] font-bold">
         <DecimalInput
+          aria-label={label}
           value={value}
           max={100}
           onValue={onValue}
