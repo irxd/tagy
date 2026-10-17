@@ -292,6 +292,8 @@ Six phases, about 7 weeks (36 working days) for one developer; phase 3 is the fi
    - Deploy to Cloudflare Pages at tagy.mhirsd.com with SPA fallback
    - Exit: export on Chrome, import on Safari iOS, data matches
 
+Progress against these phases is logged in [progress.md](progress.md).
+
 ## Testing, accessibility and deployment
 
 The money and status logic carries the most risk, so it gets exhaustive unit tests; the UI gets a short list of end-to-end journeys on desktop and a 390 px viewport.

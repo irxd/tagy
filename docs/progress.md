@@ -2,6 +2,38 @@
 
 What was built in each phase, and where it differs from `build-plan.md`. Newest first.
 
+## Phase 6 — Backup, offline, polish and launch prep (done, deploy pending)
+
+**Built**
+
+- JSON backup: Export backup saves every store and the logo with a schemaVersion; Import validates the whole file (clear errors for non-backups, newer versions, damaged fields), shows what's in it and replaces everything in one transaction — a failed import changes nothing. Available from Settings, Overview and the first-visit screen.
+- Backup reminder on Overview after 14 days without a backup (counted from the first invoice when there has never been one), with Later for the session.
+- Offline: service worker precaches the app, fonts and PDF engine; installable manifest; updates prompt instead of reloading; persistent storage requested after the first invoice.
+- Performance: every screen except Overview loads on demand; the backup module and first-visit screen too. Start chunk ~180 KB gzipped.
+- Accessibility: axe checks (WCAG 2.2 AA) on every screen, desktop and mobile, with no serious issues.
+- Deploy prep: Cloudflare Pages `_headers` (caching, strict CSP, security headers), README with setup steps. A test runs the app under the CSP.
+
+**Lighthouse** (production build, local)
+
+| Page | Desktop perf / a11y / BP / SEO | Mobile perf / a11y / BP / SEO |
+| --- | --- | --- |
+| Overview | 100 / 100 / 100 / 100 | 91 / 100 / 100 / 100 |
+| Settings | 100 / 100 / 100 / 100 | 91 / 100 / 100 / 100 |
+| Clients | 100 / 100 / 100 / 100 | 92 / 100 / 100 / 100 |
+| Templates | 99 / 96 / 100 / 100 | 79 / 96 / 96 / 100 |
+
+The plan's target was ≥ 95. Desktop meets it. Mobile performance (simulated slow 4G) is held back by the ~180 KB start chunk (React, router, Dexie, Radix); Templates also loads its own chunk and template fonts, and its a11y / best-practices points are lost on the scaled invoice preview (tiny text and the design's light colours, which mirror the printed document).
+
+**Differences from the plan**
+
+- Design colours changed for contrast: coloured text uses new darker `*-ink` tones (danger, success, warning; accent-ink for links and "Sent"); `tile-muted` went from #6b7079 to #60656e. Dots, icons and fills keep the design's bright tones. Invoice templates keep their design colours.
+- The CSP needs `wasm-unsafe-eval` (React-PDF's layout engine is WebAssembly) and `style-src 'unsafe-inline'` (inline styles in templates).
+- SPA routes rely on Cloudflare Pages' built-in fallback (no `404.html`), so no `_redirects` file.
+
+**Still to do (needs you)**
+
+- Connect the GitHub repo in Cloudflare Pages and add the `tagy.mhirsd.com` custom domain — steps in the README.
+
 ## Phase 5 — Overview (done)
 
 **Built**
