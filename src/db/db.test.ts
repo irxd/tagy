@@ -30,6 +30,17 @@ describe('settings', () => {
     expect(s.currency).toBe('EUR')
     expect(s.terms).toBe('net14')
   })
+
+  it('merges business fields instead of replacing the profile', async () => {
+    await updateSettings({ business: { name: 'Irsya Studio', logoBlobId: 'logo' } })
+    await updateSettings({ business: { email: 'hello@irsya.studio' } })
+    const { business } = await getSettings()
+    expect(business).toMatchObject({
+      name: 'Irsya Studio',
+      email: 'hello@irsya.studio',
+      logoBlobId: 'logo',
+    })
+  })
 })
 
 describe('clients', () => {
