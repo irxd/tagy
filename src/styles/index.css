@@ -1,0 +1,56 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens from tagy.pen (Style C · Tile). Names mirror the Pencil
+ * variables 1:1 so a token in the design maps to a class here:
+ * $tile-panel → bg-tile-panel, $tile-radius-lg → rounded-tile-lg.
+ */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-tile-canvas: #eceef1;
+  --color-tile-shell: #f5f6f8;
+  --color-tile-panel: #ffffff;
+  --color-tile-tile: #f3f4f6;
+  --color-tile-tile-strong: #e8eaee;
+  --color-tile-border: #e9ebee;
+  --color-tile-border-strong: #d9dce1;
+  --color-tile-fg: #111214;
+  --color-tile-muted: #6b7079;
+  --color-tile-subtle: #9ea3ac;
+  --color-tile-accent: #2563ff;
+  --color-tile-accent-ink: #1a4fe0;
+  --color-tile-accent-soft: #e8efff;
+  --color-tile-orange: #f2662b;
+  --color-tile-orange-soft: #ffeee6;
+  --color-tile-success: #15994a;
+  --color-tile-success-soft: #e5f6eb;
+  --color-tile-warning: #c9700a;
+  --color-tile-warning-soft: #fdf1df;
+  --color-tile-danger: #e0294a;
+  --color-tile-danger-soft: #fde8ec;
+
+  --radius-tile-sm: 8px;
+  --radius-tile-md: 12px;
+  --radius-tile-lg: 16px;
+  --radius-tile-xl: 22px;
+  --radius-tile-panel: 24px;
+  --radius-tile-shell: 32px;
+
+  /* Borders, not shadows — overlays (menus, sheets, tab bar) only. */
+  --shadow-tile-overlay: 0 16px 40px #1a1f2b1f;
+  --shadow-tile-float: 0 8px 24px #1a1f2b1f;
+
+  /* Desktop layout (rail + panel) starts here; below it the mobile layout. */
+  --breakpoint-desk: 1024px;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-tile-canvas font-sans text-tile-fg antialiased;
+  }
+}
