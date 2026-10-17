@@ -1,4 +1,4 @@
-import { fontFor, FONTS } from './fonts'
+import { templateFonts } from './fonts'
 import { PAGE_HEIGHT, PAGE_WIDTH, type InvoiceView } from './view'
 
 const INK = '#111111'
@@ -21,7 +21,7 @@ export function BoldTemplate({ view }: { view: InvoiceView }) {
         width: PAGE_WIDTH,
         minHeight: PAGE_HEIGHT[view.paper],
         color: INK,
-        fontFamily: fontFor(view.font, FONTS.interTight),
+        fontFamily: templateFonts('bold', view.font).text,
       }}
     >
       <header

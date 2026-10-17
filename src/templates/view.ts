@@ -62,6 +62,8 @@ export interface InvoiceView {
   tax: { label: string; value: string } | null
   /** With currency symbol: `$12,927.60`. */
   total: string
+  /** Without symbol, for `12,927.60 USD`. */
+  totalAmount: string
   currency: string
   notes: string
   paymentDetails: string | null
@@ -147,6 +149,7 @@ export function buildInvoiceView({
       : null,
     tax: taxPct ? { label: `Tax (${taxPct}%)`, value: amount(totals.tax) } : null,
     total: formatMoney(totals.total, currency, locale),
+    totalAmount: amount(totals.total),
     currency,
     notes: invoice.notes.trim(),
     paymentDetails:

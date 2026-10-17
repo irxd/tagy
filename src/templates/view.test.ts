@@ -62,6 +62,7 @@ describe('buildInvoiceView', () => {
       discount: { label: 'Discount (5%)', value: '−630.00' },
       tax: { label: 'Tax (8%)', value: '957.60' },
       total: '$12,927.60',
+      totalAmount: '12,927.60',
       notes: 'Thanks!',
       paymentDetails: 'Bank transfer',
       accent: '#3D5AFE',
