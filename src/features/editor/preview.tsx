@@ -118,7 +118,12 @@ function FitWidth({ view }: { view: InvoiceView }) {
   // Fill the width on phones; cap at 1.3× (≈ 728 px) on large screens.
   const zoom = width ? Math.min(1.3, (width - 32) / PAGE_WIDTH) : 1
   return (
-    <div ref={ref} className="flex flex-1 justify-center overflow-y-auto px-4 pb-6">
+    // min-h-0 lets this area shrink and scroll; items-start keeps the page at
+    // its own height instead of stretching it to (and clipping it at) the window.
+    <div
+      ref={ref}
+      className="flex min-h-0 flex-1 items-start justify-center overflow-y-auto px-4 pb-6"
+    >
       {width > 0 && <ScaledPage view={view} zoom={zoom} />}
     </div>
   )

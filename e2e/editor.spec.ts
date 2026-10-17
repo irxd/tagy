@@ -147,6 +147,11 @@ test('full preview opens the whole page and closes', async ({ page }) => {
   await page.getByRole('button', { name: 'Full preview', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Preview · INV-0042' })
   await expect(dialog.getByRole('article')).toContainText('Payment details')
+  // The page frame must fit the whole invoice (and scroll), not clip its bottom.
+  const [frame, invoice] = await dialog
+    .getByRole('article')
+    .evaluate((el: HTMLElement) => [el.parentElement!.offsetHeight, el.offsetHeight])
+  expect(frame).toBeGreaterThanOrEqual(invoice!)
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
 })
