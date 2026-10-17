@@ -5,6 +5,7 @@ import { EditorPage, NewInvoicePage } from '@/features/editor/EditorPage'
 import { OverviewPage } from '@/features/overview/OverviewPage'
 import { SettingsPage, SettingsSubPage } from '@/features/settings/SettingsPage'
 import { TemplatesPage } from '@/features/templates/TemplatesPage'
+import { PrintPage } from '@/features/print/PrintPage'
 import { NotFoundPage } from './NotFoundPage'
 import { AppShell } from './shell/AppShell'
 
@@ -21,6 +22,8 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
   : []
 
 export const router = createBrowserRouter([
+  // Outside the shell: the bare invoice for the print dialog.
+  { path: 'print/:id', element: <PrintPage /> },
   {
     element: <AppShell />,
     children: [

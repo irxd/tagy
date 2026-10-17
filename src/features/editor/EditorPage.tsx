@@ -8,7 +8,9 @@ import { TEMPLATE_LABELS } from '@/features/settings/options'
 import { Button } from '@/ui/Button'
 import { DropdownButton } from '@/ui/Chip'
 import { Menu, MenuItem } from '@/ui/Menu'
+import { useToast } from '@/ui/toastContext'
 import { useLayout } from '@/ui/useLayout'
+import { printInvoice } from '@/features/print/printInvoice'
 import { MobileEditor } from './MobileEditor'
 import { PreviewPane } from './preview'
 import { DetailsFields, ItemsCard, NotesCard, PaymentCard, SummaryCard } from './sections'
@@ -77,6 +79,7 @@ function DesktopEditor() {
 
 function EditorHeader() {
   const { invoice, set } = useEditor()
+  const toast = useToast()
   const save = useSaveStatus()
   const saved = { saving: 'saving…', saved: 'autosaved in this browser', error: "couldn't save" }[
     save
@@ -112,8 +115,14 @@ function EditorHeader() {
             />
           ))}
         </Menu>
-        {/* Print and PDF arrive with phase 4. */}
-        <Button icon={Printer} disabled title="Arrives in phase 4">
+        <Button
+          icon={Printer}
+          onClick={() =>
+            printInvoice(invoice.id).catch(() =>
+              toast({ message: "Couldn't open printing — try again" }),
+            )
+          }
+        >
           Print
         </Button>
         <Button variant="primary" icon={Download} disabled title="Arrives in phase 4">
