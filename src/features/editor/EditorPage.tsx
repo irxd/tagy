@@ -27,9 +27,12 @@ export function NewInvoicePage() {
     if (started.current) return
     started.current = true
     // Mobile starts the step flow at Client; desktop ignores the step.
-    void createInvoice().then((inv) =>
-      navigate(`/invoices/${inv.id}?step=client`, { replace: true }),
-    )
+    void createInvoice().then((inv) => {
+      // Ask the browser to keep this site's storage (it may still say no);
+      // persisted storage isn't cleared under storage pressure.
+      void navigator.storage?.persist?.()
+      navigate(`/invoices/${inv.id}?step=client`, { replace: true })
+    })
   }, [navigate])
   return null
 }
