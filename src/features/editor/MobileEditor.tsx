@@ -50,6 +50,7 @@ import { DecimalInput, MoneyInput } from './inputs'
 import { PreviewDialog, ScaledPage } from './preview'
 import { useEditor } from './useEditor'
 import { useInvoiceView } from './useInvoiceView'
+import { useDownloadPdf } from './useDownloadPdf'
 import { useStatusChange } from './useStatusChange'
 
 const STEPS = ['client', 'details', 'items', 'review'] as const
@@ -766,6 +767,7 @@ function StatusBlock() {
   const navigate = useNavigate()
   const toast = useToast()
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const pdf = useDownloadPdf()
   const today = todayISO()
   const late = status === 'overdue'
   const short = (iso: string | null) =>
@@ -837,8 +839,8 @@ function StatusBlock() {
       <div className="flex gap-2 [&>button]:flex-1 [&>button]:px-3">
         <Button
           icon={Download}
-          disabled
-          title="PDF download arrives in phase 4"
+          disabled={pdf.busy}
+          onClick={() => void pdf.download()}
           className="justify-center"
         >
           PDF
@@ -879,7 +881,8 @@ function StatusBlock() {
 
 function ActionBar({ step, onNext }: { step: Step; onNext?: () => void }) {
   const { invoice, client, status, totals, money, date } = useEditor()
-  const { change, openPaid, dialog } = useStatusChange()
+  const { openPaid, dialog } = useStatusChange()
+  const pdf = useDownloadPdf()
   const [sendAfter, setSendAfter] = useState(true)
   const name = invoice.clientSnapshot?.name ?? client?.name
   const days = Math.round((Date.parse(invoice.dueDate) - Date.parse(todayISO())) / 86_400_000)
@@ -926,14 +929,14 @@ function ActionBar({ step, onNext }: { step: Step; onNext?: () => void }) {
             <CircleCheck size={17} aria-hidden />
           </button>
         ) : status === 'draft' ? (
-          // PDF download arrives in phase 4; until then the draft can be marked sent.
           <button
             type="button"
-            onClick={() => void change('sent')}
-            className={cn(primary, 'bg-tile-fg')}
+            disabled={pdf.busy}
+            onClick={() => void pdf.download({ markSent: sendAfter })}
+            className={cn(primary, 'bg-tile-accent')}
           >
-            Mark as sent
-            <Send size={17} aria-hidden />
+            {pdf.busy ? 'Preparing…' : 'Download PDF'}
+            <Download size={17} aria-hidden />
           </button>
         ) : (
           <Link to="/" className={cn(primary, 'bg-tile-fg')}>

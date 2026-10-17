@@ -23,6 +23,7 @@ import { Menu, MenuDivider, MenuItem } from '@/ui/Menu'
 import { StatusSelect, StatusStepper, type StepProps } from '@/ui/Status'
 import { useToast } from '@/ui/toastContext'
 import { ClientPicker } from './ClientPicker'
+import { useDownloadPdf } from './useDownloadPdf'
 import { useStatusChange } from './useStatusChange'
 import { useEditor } from './useEditor'
 
@@ -76,6 +77,7 @@ export function HeroSummary({ onPreview }: { onPreview: () => void }) {
   const { invoice, client, status, totals, money, date, today, set, settings, actions } =
     useEditor()
   const { change, openPaid, dialog } = useStatusChange()
+  const pdf = useDownloadPdf()
   const [pickerOpen, setPickerOpen] = useState(false)
   const navigate = useNavigate()
   const toast = useToast()
@@ -205,7 +207,7 @@ export function HeroSummary({ onPreview }: { onPreview: () => void }) {
                   Back to draft
                 </Button>
               )}
-              <Button icon={Download} disabled title="PDF download arrives in phase 4">
+              <Button icon={Download} disabled={pdf.busy} onClick={() => void pdf.download()}>
                 PDF
               </Button>
               {status === 'overdue' && (
