@@ -4,6 +4,7 @@ import {
   Copy,
   HardDrive,
   Download,
+  FileSpreadsheet,
   Plus,
   Search,
   TrendingDown,
@@ -18,7 +19,9 @@ import { useBlobUrl } from '@/db/hooks'
 import { clearSampleData } from '@/db/sample'
 import { duplicateInvoice } from '@/db/invoices'
 import { daysBetween, formatDate, timeAgo } from '@/domain/dates'
+import { invoicesToCsv } from '@/domain/csv'
 import { formatMoney } from '@/domain/money'
+import { saveFile } from '@/lib/saveFile'
 import { matchesInvoice, PERIOD_LABELS, type Period } from '@/domain/overview'
 import type { DisplayStatus } from '@/domain/status'
 import { Button } from '@/ui/Button'
@@ -201,6 +204,21 @@ function headline(o: Overview) {
     : `${name} was your best month`
 }
 
+/** Export CSV: the invoices in the selected period (decision 4). */
+function exportCsv(o: Overview) {
+  const csv = invoicesToCsv(
+    o.rows.map((r) => r.invoice),
+    (inv) => o.rows.find((r) => r.invoice.id === inv.id)?.clientName ?? '',
+    o.settings.taxRates,
+    o.today,
+  )
+  // The byte-order mark makes Excel read the file as UTF-8.
+  saveFile(
+    new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }),
+    `tagy-invoices-${o.today}.csv`,
+  )
+}
+
 function useDuplicateLast(o: Overview) {
   const navigate = useNavigate()
   const toast = useToast()
@@ -326,6 +344,9 @@ function DesktopOverview({ o }: { o: Overview }) {
               </p>
             )}
             <div className="flex gap-2">
+              <Button icon={FileSpreadsheet} onClick={() => exportCsv(o)}>
+                Export CSV
+              </Button>
               {duplicateLast && (
                 <Button icon={Copy} onClick={duplicateLast}>
                   Duplicate last

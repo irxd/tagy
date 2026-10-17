@@ -1,4 +1,5 @@
 import type { TemplateId } from '@/db/types'
+import { saveFile } from '@/lib/saveFile'
 import type { InvoiceView } from '@/templates/view'
 
 /** `INV-0042.pdf`; characters that are unsafe in file names become dashes. */
@@ -12,13 +13,5 @@ export function pdfFileName(number: string): string {
  */
 export async function downloadInvoicePdf(view: InvoiceView, template: TemplateId): Promise<void> {
   const { renderInvoicePdf } = await import('./render')
-  const blob = await renderInvoicePdf(view, template)
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = pdfFileName(view.number)
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  saveFile(await renderInvoicePdf(view, template), pdfFileName(view.number))
 }
