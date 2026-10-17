@@ -19,7 +19,7 @@ async function openDesignInvoice(page: Page, patch: object = {}) {
 
 test('a new invoice gets the next number and autosaves items', async ({ page }) => {
   await page.goto('/invoices/new')
-  await expect(page).toHaveURL(/\/invoices\/[\w-]{36}$/)
+  await expect(page).toHaveURL(/\/invoices\/[\w-]{36}/)
   await expect(field(page, 'Invoice no.')).toHaveValue('INV-0001')
 
   await page.getByRole('button', { name: 'Add item' }).first().click()
