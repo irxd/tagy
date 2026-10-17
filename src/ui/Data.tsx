@@ -6,6 +6,7 @@ const avatarTones = {
   ink: 'bg-tile-fg text-white',
   danger: 'bg-tile-danger text-white',
   quiet: 'bg-tile-tile-strong text-tile-fg',
+  light: 'bg-tile-panel text-tile-fg',
 }
 
 /** Round initials badge (Tile/Party → Logo). Red flags overdue, grey means settled. */

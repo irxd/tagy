@@ -41,7 +41,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex shrink-0 items-center rounded-full font-semibold whitespace-nowrap transition-colors',
+        'inline-flex shrink-0 items-center rounded-full font-semibold whitespace-nowrap transition-colors [&>svg]:shrink-0',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tile-accent',
         'disabled:pointer-events-none disabled:opacity-50',
         variants[variant],
