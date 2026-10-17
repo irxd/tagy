@@ -17,7 +17,7 @@ What was built in each phase, and where it differs from `build-plan.md`. Newest 
 - Offline: service worker precaches the app, fonts and PDF engine; installable manifest; updates prompt instead of reloading; persistent storage requested after the first invoice.
 - Performance: every screen except Overview loads on demand; the backup module and first-visit screen too. Start chunk ~180 KB gzipped.
 - Accessibility: axe checks (WCAG 2.2 AA) on every screen, desktop and mobile, with no serious issues.
-- Deploy prep: Cloudflare Pages `_headers` (caching, strict CSP, security headers), README with setup steps. A test runs the app under the CSP.
+- Deploy prep: Cloudflare Pages `_headers` (caching, strict CSP, security headers), setup steps in `docs/deploy.md`. A test runs the app under the CSP.
 
 **Lighthouse** (production build, local)
 
@@ -38,7 +38,7 @@ The plan's target was ≥ 95. Desktop meets it. Mobile performance (simulated sl
 
 **Still to do (needs you)**
 
-- Connect the GitHub repo in Cloudflare Pages and add the `tagy.mhirsd.com` custom domain — steps in the README.
+- Connect the GitHub repo in Cloudflare Pages and add the `tagy.mhirsd.com` custom domain — steps in `docs/deploy.md`.
 
 ## Phase 5 — Overview (done)
 
