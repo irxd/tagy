@@ -82,19 +82,27 @@ export interface StepProps {
   done: boolean
   /** Icon for a completed step; pending steps show a dashed circle. */
   icon?: LucideIcon
+  /** Colours the icon and label of the current step (Sent, Overdue, Paid). */
+  tone?: 'fg' | 'accent' | 'danger' | 'success'
+}
+
+const stepTones = {
+  fg: 'text-tile-fg',
+  accent: 'text-tile-accent',
+  danger: 'text-tile-danger',
+  success: 'text-tile-success',
 }
 
 /** Tile/Step — progress bar over icon, label and date. */
-export function Step({ label, date, done, icon: Icon = CircleCheck }: StepProps) {
+export function Step({ label, date, done, icon: Icon = CircleCheck, tone = 'fg' }: StepProps) {
   const StepIcon = done ? Icon : CircleDashed
+  const color = done ? stepTones[tone] : undefined
   return (
     <li className="flex min-w-0 flex-1 flex-col gap-2">
       <span className={cn('h-1 rounded-sm', done ? 'bg-tile-fg' : 'bg-tile-tile-strong')} />
       <span className="flex items-center gap-[7px]">
-        <StepIcon size={15} className={done ? 'text-tile-fg' : 'text-tile-subtle'} aria-hidden />
-        <span className={cn('text-[13px] font-bold', done ? 'text-tile-fg' : 'text-tile-muted')}>
-          {label}
-        </span>
+        <StepIcon size={15} className={color ?? 'shrink-0 text-tile-subtle'} aria-hidden />
+        <span className={cn('text-[13px] font-bold', color ?? 'text-tile-muted')}>{label}</span>
         <span className="truncate text-xs text-tile-muted">{date ?? '—'}</span>
       </span>
     </li>

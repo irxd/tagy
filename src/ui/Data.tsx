@@ -100,7 +100,7 @@ export function Stat({
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1">
         <span className="truncate text-[13px] text-tile-muted">{label}</span>
         {chip}
       </div>
