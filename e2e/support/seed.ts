@@ -123,18 +123,18 @@ export function designClients() {
   }
 }
 
-/** Settings and business profile from the design (Irsya Studio, 8% tax). */
+/** Settings and business profile from the design (Tagy Studio, 8% tax). */
 export function designSettings() {
   return {
     key: 'app',
     business: {
-      name: 'Irsya Studio',
+      name: 'Tagy Studio',
       logoBlobId: null,
-      email: 'hello@irsya.studio',
+      email: 'hello@tagy.studio',
       phone: '+1 (212) 555-0193',
       address: '221 Mercer St, New York, NY 10012',
       taxId: '47-3829105',
-      website: 'irsya.studio',
+      website: 'tagy.studio',
       paymentDetails:
         'Bank transfer · Chase Bank\nAccount 000123454821 · Routing 021000021\nPlease use the invoice number as reference.',
     },

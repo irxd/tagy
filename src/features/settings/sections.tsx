@@ -65,7 +65,7 @@ export function BusinessSection({ form, className, hideHeader }: SectionProps) {
       <LogoTile name={b.name} logoBlobId={b.logoBlobId} />
       <TextField
         label="Business name"
-        placeholder="e.g. Irsya Studio"
+        placeholder="e.g. Tagy Studio"
         autoComplete="organization"
         value={b.name}
         onChange={(e) => setBusiness({ name: e.target.value })}

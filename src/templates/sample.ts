@@ -71,8 +71,8 @@ export function sampleInvoice(settings: AppSettings): { invoice: Invoice; client
     businessSnapshot: settings.business.name
       ? null
       : {
-          name: 'Irsya Studio',
-          email: 'hello@irsya.studio',
+          name: 'Tagy Studio',
+          email: 'hello@tagy.studio',
           phone: '',
           address: '221 Mercer St, New York, NY 10012',
           taxId: '',

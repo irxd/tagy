@@ -81,7 +81,7 @@ describe('displayStatus', () => {
 })
 
 describe('transitions', () => {
-  const business = { ...defaultSettings().business, name: 'Irsya Studio' }
+  const business = { ...defaultSettings().business, name: 'Tagy Studio' }
   const now = '2026-10-16T10:00:00.000Z'
   const taxRate = { id: 't1', name: 'Maine', pct: 8 }
 
@@ -91,7 +91,7 @@ describe('transitions', () => {
       status: 'sent',
       sentAt: now,
       clientSnapshot: { name: 'Northwind Studio', email: 'billing@northwind.co' },
-      businessSnapshot: { name: 'Irsya Studio' },
+      businessSnapshot: { name: 'Tagy Studio' },
       taxSnapshot: { name: 'Maine', pct: 8 },
     })
   })

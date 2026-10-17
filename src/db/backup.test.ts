@@ -17,7 +17,7 @@ beforeEach(async () => {
 })
 
 async function sampleData() {
-  await updateSettings({ business: { name: 'Irsya Studio' }, nextNumber: 42 })
+  await updateSettings({ business: { name: 'Tagy Studio' }, nextNumber: 42 })
   const client = await createClient({ name: 'Northwind Studio', currency: 'EUR' })
   await createInvoice({
     clientId: client.id,
@@ -46,7 +46,7 @@ describe('backup', () => {
       invoices: 1,
       clients: 1,
       exportedAt: '2026-10-18T10:00:00.000Z',
-      business: 'Irsya Studio',
+      business: 'Tagy Studio',
     })
     await restoreBackup(parsed.file)
 

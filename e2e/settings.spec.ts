@@ -13,8 +13,8 @@ test('business profile and defaults autosave and survive a reload', async ({ pag
   const desktop = isDesktop(testInfo.project.name)
 
   await page.goto(desktop ? '/settings' : '/settings/business')
-  await field(page, 'Business name').fill('Irsya Studio')
-  await field(page, 'Email').fill('hello@irsya.studio')
+  await field(page, 'Business name').fill('Tagy Studio')
+  await field(page, 'Email').fill('hello@tagy.studio')
   if (!desktop) {
     await saved(page)
     await page.goto('/settings/defaults')
@@ -30,7 +30,7 @@ test('business profile and defaults autosave and survive a reload', async ({ pag
   await expect(field(page, 'Next number')).toHaveValue('0043')
   await expect(field(page, 'Tax rate (%)')).toHaveValue('8')
   if (!desktop) await page.goto('/settings/business')
-  await expect(field(page, 'Business name')).toHaveValue('Irsya Studio')
+  await expect(field(page, 'Business name')).toHaveValue('Tagy Studio')
 })
 
 test('invalid input shows an inline error', async ({ page }, testInfo) => {
@@ -58,7 +58,7 @@ test('desktop redirects sub-pages to the full settings page', async ({ page }, t
 test('clear all data needs the typed confirmation', async ({ page }, testInfo) => {
   const desktop = isDesktop(testInfo.project.name)
   await page.goto(desktop ? '/settings' : '/settings/business')
-  await field(page, 'Business name').fill('Irsya Studio')
+  await field(page, 'Business name').fill('Tagy Studio')
   await saved(page)
   if (!desktop) await page.goto('/settings')
 

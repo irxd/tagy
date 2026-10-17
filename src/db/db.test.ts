@@ -34,12 +34,12 @@ describe('settings', () => {
   })
 
   it('merges business fields instead of replacing the profile', async () => {
-    await updateSettings({ business: { name: 'Irsya Studio', logoBlobId: 'logo' } })
-    await updateSettings({ business: { email: 'hello@irsya.studio' } })
+    await updateSettings({ business: { name: 'Tagy Studio', logoBlobId: 'logo' } })
+    await updateSettings({ business: { email: 'hello@tagy.studio' } })
     const { business } = await getSettings()
     expect(business).toMatchObject({
-      name: 'Irsya Studio',
-      email: 'hello@irsya.studio',
+      name: 'Tagy Studio',
+      email: 'hello@tagy.studio',
       logoBlobId: 'logo',
     })
   })

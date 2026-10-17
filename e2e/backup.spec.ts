@@ -35,12 +35,12 @@ test('export, clear everything, import the same file back', async ({ page }) => 
 
   await page.locator('input[type=file][accept*="json"]').setInputFiles(path)
   const dialog = page.getByRole('dialog', { name: 'Replace everything with this backup?' })
-  await expect(dialog).toContainText('11 invoices and 7 clients from Irsya Studio')
+  await expect(dialog).toContainText('11 invoices and 7 clients from Tagy Studio')
   await dialog.getByRole('button', { name: 'Replace and import' }).click()
 
   await expect(page).toHaveURL('/')
   await expect(page.getByRole('status')).toContainText('Imported 11 invoices and 7 clients')
-  await expect(page.getByRole('region', { name: 'Summary' })).toContainText('Irsya Studio')
+  await expect(page.getByRole('region', { name: 'Summary' })).toContainText('Tagy Studio')
 })
 
 test('a file that is not a backup is refused with a reason', async ({ page }) => {

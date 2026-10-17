@@ -27,7 +27,7 @@ test('setup checklist links to business details and ticks them off', async ({ pa
   await page.goto('/')
   await page.getByRole('link', { name: /Business details/ }).click()
   await expect(page).toHaveURL(isMobile ? '/settings/business' : '/settings')
-  await page.getByLabel('Business name', { exact: true }).fill('Irsya Studio')
+  await page.getByLabel('Business name', { exact: true }).fill('Tagy Studio')
   await page.waitForTimeout(700)
   await page.goto('/')
   await expect(

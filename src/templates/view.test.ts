@@ -5,7 +5,7 @@ import { buildInvoiceView, PAGE_HEIGHT } from './view'
 
 const settings: AppSettings = {
   ...defaultSettings(),
-  business: { ...defaultSettings().business, name: 'Irsya Studio', email: 'hello@irsya.studio' },
+  business: { ...defaultSettings().business, name: 'Tagy Studio', email: 'hello@tagy.studio' },
   taxRates: [{ id: 't', name: 'Maine', pct: 8 }],
 }
 
