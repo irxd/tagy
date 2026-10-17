@@ -67,6 +67,7 @@ A Vite + React + TypeScript single-page app, styled with Tailwind using the `til
 | Concern | Choice | Why |
 | --- | --- | --- |
 | Build | Vite, TypeScript (strict) | Fast dev loop, static output for any CDN |
+| Lint and format | oxlint (Vite template default), Prettier | Fast lint, one code style |
 | UI | React 19 | Large ecosystem for forms, PDF and a11y primitives |
 | Routing | React Router (browser history, SPA fallback) | Deep links to `/invoices/:id` survive refresh |
 | Styling | Tailwind CSS v4, theme mapped from `tile-*` tokens | Tokens copy straight from the Pencil variables |
@@ -120,7 +121,7 @@ One Dexie database, `tagy`, with four stores; the handoff's entities map onto th
 | Store | Key | Indexes | Holds |
 | --- | --- | --- | --- |
 | `invoices` | `id` (UUID) | `number` (unique), `status`, `clientId`, `issueDate`, `dueDate`, `updatedAt` | Invoice with embedded `items[]` |
-| `clients` | `id` (UUID) | `name`, `archived` | Client |
+| `clients` | `id` (UUID) | `name` (`archived` is filtered in memory; booleans can't be IndexedDB keys) | Client |
 | `settings` | fixed key `"app"` | — | Business profile + Settings in one record |
 | `blobs` | `id` | — | Logo image (resized PNG / SVG) |
 
