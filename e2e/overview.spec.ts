@@ -10,9 +10,6 @@ async function withDesignData(page: Page) {
   })
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
-  // Mobile shows the four most recent until "See all".
-  const seeAll = page.getByRole('button', { name: 'See all' })
-  if (await seeAll.isVisible()) await seeAll.click()
 }
 
 const row = (page: Page, number: string) => page.getByRole('listitem').filter({ hasText: number })
@@ -100,4 +97,35 @@ test('Export CSV downloads the period’s invoices', async ({ page, isMobile }) 
   expect(lines[0]).toMatch(/^Number,Status,Client/)
   expect(lines).toHaveLength(12)
   expect(text).toContain('INV-0042,draft,Northwind Studio')
+})
+
+test('the list pages through invoices and remembers the page size', async ({ page, isMobile }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Explore with sample data' }).click()
+  const list = page.getByRole('region', { name: 'Invoices' })
+  await expect(list.getByRole('listitem')).toHaveCount(10)
+  await expect(list).toContainText('1–10 of 41')
+
+  await list.getByRole('button', { name: 'Next page' }).click()
+  await expect(list).toContainText('11–20 of 41')
+  if (!isMobile) {
+    await list.getByRole('button', { name: 'Page 5' }).click()
+    await expect(list).toContainText('41–41 of 41')
+    await expect(list.getByRole('button', { name: 'Next page' })).toBeDisabled()
+  }
+
+  // A filter starts again from page 1.
+  await list.getByRole('button', { name: /^Paid/ }).click()
+  await expect(list).toContainText(/1–10 of \d+/)
+  await expect(list.getByRole('button', { name: 'Previous page' })).toBeDisabled()
+  // With 10 or fewer matches there's no pager.
+  await list.getByRole('button', { name: /^Draft/ }).click()
+  await expect(list.getByRole('listitem').first()).toBeVisible()
+  await expect(list.getByRole('navigation', { name: 'Pages' })).toHaveCount(0)
+
+  await list.getByRole('button', { name: /^All/ }).click()
+  await list.getByLabel('Invoices per page').selectOption('25')
+  await expect(list.getByRole('listitem')).toHaveCount(25)
+  await page.reload()
+  await expect(list).toContainText('1–25 of 41')
 })

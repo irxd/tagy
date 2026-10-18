@@ -25,6 +25,7 @@ import { invoicesToCsv } from '@/domain/csv'
 import { formatMoney } from '@/domain/money'
 import { saveFile } from '@/lib/saveFile'
 import { matchesInvoice, PERIOD_LABELS, type Period } from '@/domain/overview'
+import { PAGE_SIZES, pageInfo, type PageSize } from '@/domain/pagination'
 import type { DisplayStatus } from '@/domain/status'
 import { Button } from '@/ui/Button'
 import { DropdownButton, FilterPill, MiniChip } from '@/ui/Chip'
@@ -33,6 +34,7 @@ import { Avatar, Stat } from '@/ui/Data'
 import { initials } from '@/ui/initials'
 import { Menu, MenuItem } from '@/ui/Menu'
 import { PageHeader } from '@/ui/PageHeader'
+import { Pagination } from '@/ui/Pagination'
 import { StatusBadge } from '@/ui/Status'
 import { useToast } from '@/ui/toastContext'
 import { useLayout } from '@/ui/useLayout'
@@ -69,14 +71,63 @@ export function OverviewPage() {
 
 /* ---------- shared ---------- */
 
+const PAGE_SIZE_KEY = 'tagy.overview.pageSize'
+
+/** The remembered rows-per-page choice; a per-browser convenience, so storage may fail. */
+function storedPageSize(): PageSize {
+  try {
+    const n = Number(localStorage.getItem(PAGE_SIZE_KEY))
+    return (PAGE_SIZES as readonly number[]).includes(n) ? (n as PageSize) : 10
+  } catch {
+    return 10
+  }
+}
+
 function useListState(o: Overview) {
-  const [filter, setFilter] = useState<Filter>('all')
-  const [query, setQuery] = useState('')
+  const [filter, setFilterState] = useState<Filter>('all')
+  const [query, setQueryState] = useState('')
+  const [page, setPage] = useState(1)
+  const [size, setSizeState] = useState<PageSize>(storedPageSize)
   const visible = o.rows.filter(
     (r) =>
       (filter === 'all' || r.status === filter) && matchesInvoice(r.invoice, r.clientName, query),
   )
-  return { filter, setFilter, query, setQuery, visible }
+  // Clamped, so a page emptied by a delete or a shorter period falls back to the last one.
+  const info = pageInfo(visible.length, page, size)
+
+  return {
+    filter,
+    setFilter(f: Filter) {
+      setFilterState(f)
+      setPage(1)
+    },
+    query,
+    setQuery(q: string) {
+      setQueryState(q)
+      setPage(1)
+    },
+    visible,
+    shown: visible.slice(info.start, info.end),
+    pager: (compact?: boolean) =>
+      visible.length > PAGE_SIZES[0] && (
+        <Pagination
+          info={info}
+          total={visible.length}
+          size={size}
+          compact={compact}
+          onPage={setPage}
+          onSize={(n) => {
+            setSizeState(n)
+            setPage(1)
+            try {
+              localStorage.setItem(PAGE_SIZE_KEY, String(n))
+            } catch {
+              // Not remembered; the choice still applies until reload.
+            }
+          }}
+        />
+      ),
+  }
 }
 
 function Filters({
@@ -453,13 +504,14 @@ function DesktopOverview({ o }: { o: Overview }) {
         </div>
         {list.visible.length ? (
           <ul className="flex flex-col rounded-tile-lg border border-tile-border px-5 py-1">
-            {list.visible.map((row) => (
+            {list.shown.map((row) => (
               <DesktopRow key={row.invoice.id} row={row} o={o} menu={menu(row)} />
             ))}
           </ul>
         ) : (
           <NoMatches query={list.query} />
         )}
+        {list.pager()}
       </section>
 
       <LocalDataNotice o={o} />
@@ -574,11 +626,8 @@ function MobileOverview({ o }: { o: Overview }) {
   const list = useListState(o)
   const { menu, dialogs } = useRowActions((iso) => o.date(iso))
   const [searching, setSearching] = useState(false)
-  const [showAll, setShowAll] = useState(false)
   const backup = useBackup()
   const trend = o.stats.trend
-  const shown =
-    showAll || list.query || list.filter !== 'all' ? list.visible : list.visible.slice(0, 4)
   const round =
     'grid size-11 place-items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tile-accent'
 
@@ -703,22 +752,11 @@ function MobileOverview({ o }: { o: Overview }) {
       </section>
 
       <section aria-label="Invoices" className="flex flex-col gap-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-lg font-bold tracking-[-0.3px]">Recent invoices</h2>
-          {list.visible.length > 4 && !list.query && list.filter === 'all' && (
-            <button
-              type="button"
-              onClick={() => setShowAll((s) => !s)}
-              className="text-sm font-semibold text-tile-accent-ink"
-            >
-              {showAll ? 'Show less' : 'See all'}
-            </button>
-          )}
-        </div>
+        <h2 className="px-1 text-lg font-bold tracking-[-0.3px]">Recent invoices</h2>
         <Filters o={o} filter={list.filter} onFilter={list.setFilter} surface="panel" />
-        {shown.length ? (
+        {list.shown.length ? (
           <ul className="flex flex-col rounded-[18px] border border-tile-border bg-tile-panel px-3.5 py-0.5">
-            {shown.map((row) => {
+            {list.shown.map((row) => {
               const due = dueLine(row, o)
               return (
                 <li
@@ -758,6 +796,7 @@ function MobileOverview({ o }: { o: Overview }) {
         ) : (
           <NoMatches query={list.query} />
         )}
+        {list.pager(true)}
       </section>
 
       <section
