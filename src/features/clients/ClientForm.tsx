@@ -13,6 +13,8 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export interface ClientFormProps {
   /** Omit to create a new client. */
   client?: Client
+  /** Prefills the name of a new client, e.g. what was typed in the invoice's client search. */
+  initialName?: string
   /** Invoices billed to this client; a client with invoices can be archived but not deleted. */
   invoiceCount?: number
   defaultCurrency: string
@@ -31,6 +33,7 @@ type Draft = Pick<Client, 'name' | 'contact' | 'email' | 'address' | 'taxId'> & 
  */
 export function ClientForm({
   client,
+  initialName = '',
   invoiceCount = 0,
   defaultCurrency,
   defaultTerms,
@@ -38,7 +41,7 @@ export function ClientForm({
 }: ClientFormProps) {
   const toast = useToast()
   const [draft, setDraft] = useState<Draft>({
-    name: client?.name ?? '',
+    name: client?.name ?? initialName,
     contact: client?.contact ?? '',
     email: client?.email ?? '',
     address: client?.address ?? '',

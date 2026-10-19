@@ -114,6 +114,21 @@ test('client picker saves a new client by name', async ({ page }) => {
   await expect(page.getByRole('status')).toContainText('Fern & Fable saved as a client')
 })
 
+test('client picker adds a new client with details', async ({ page }) => {
+  await openDesignInvoice(page)
+  await hero(page).getByRole('button', { name: 'Change' }).click()
+  await page.getByRole('searchbox', { name: 'Search or type a new client' }).fill('Fern & Fable')
+  await page.getByRole('button', { name: /Add with details/ }).click()
+  const dialog = page.getByRole('dialog', { name: 'New client' })
+  await expect(dialog.getByLabel('Business name')).toHaveValue('Fern & Fable')
+  await dialog.getByLabel('Email').fill('billing@fernfable.co')
+  await dialog.getByLabel('Currency').selectOption('EUR')
+  await dialog.getByRole('button', { name: 'Save client' }).click()
+  await expect(hero(page)).toContainText('Fern & Fable')
+  await expect(page.getByRole('status')).toContainText('Fern & Fable saved')
+  await expect(field(page, 'Currency')).toHaveValue('EUR')
+})
+
 test('duplicate opens a copy with the next number', async ({ page }) => {
   await openDesignInvoice(page)
   await page.getByRole('button', { name: 'Duplicate' }).click()
