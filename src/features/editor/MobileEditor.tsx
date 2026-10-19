@@ -51,7 +51,7 @@ import { PreviewDialog, ScaledPage } from './preview'
 import { PercentField } from './sections'
 import { useEditor } from './useEditor'
 import { useInvoiceView } from './useInvoiceView'
-import { useDownloadPdf } from './useDownloadPdf'
+import { useDownloadInvoice } from './useDownloadInvoice'
 import { useStatusChange } from './useStatusChange'
 
 const STEPS = ['client', 'details', 'items', 'review'] as const
@@ -753,7 +753,7 @@ function StatusBlock() {
   const navigate = useNavigate()
   const toast = useToast()
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const pdf = useDownloadPdf()
+  const pdf = useDownloadInvoice()
   const today = todayISO()
   const late = status === 'overdue'
   const short = (iso: string | null) =>
@@ -870,7 +870,7 @@ function StatusBlock() {
 function ActionBar({ step, onNext }: { step: Step; onNext?: () => void }) {
   const { invoice, client, status, totals, money, date } = useEditor()
   const { openPaid, dialog } = useStatusChange()
-  const pdf = useDownloadPdf()
+  const pdf = useDownloadInvoice()
   const [sendAfter, setSendAfter] = useState(true)
   const name = invoice.clientSnapshot?.name ?? client?.name
   const days = Math.round((Date.parse(invoice.dueDate) - Date.parse(todayISO())) / 86_400_000)
@@ -923,7 +923,7 @@ function ActionBar({ step, onNext }: { step: Step; onNext?: () => void }) {
             onClick={() => void pdf.download({ markSent: sendAfter })}
             className={cn(primary, 'bg-tile-accent')}
           >
-            {pdf.busy ? 'Preparing…' : 'Download PDF'}
+            {pdf.preparing === 'pdf' ? 'Preparing…' : 'Download PDF'}
             <Download size={17} aria-hidden />
           </button>
         ) : (

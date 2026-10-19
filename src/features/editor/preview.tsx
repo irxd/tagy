@@ -1,9 +1,11 @@
-import { Maximize2, X } from 'lucide-react'
+import { ImageDown, Maximize2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import { useEffect, useRef, useState } from 'react'
 import { InvoiceDocument } from '@/templates/InvoiceDocument'
 import { PAGE_WIDTH, type InvoiceView } from '@/templates/view'
+import { Button } from '@/ui/Button'
 import { cn } from '@/ui/cn'
+import { useDownloadInvoice } from './useDownloadInvoice'
 import { useEditor } from './useEditor'
 import { useInvoiceView } from './useInvoiceView'
 
@@ -87,6 +89,7 @@ export function PreviewDialog({
   onOpenChange: (open: boolean) => void
   view: InvoiceView
 }) {
+  const download = useDownloadInvoice()
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -99,12 +102,21 @@ export function PreviewDialog({
             <Dialog.Title className="text-[17px] font-bold tracking-[-0.3px]">
               Preview · {view.number}
             </Dialog.Title>
-            <Dialog.Close
-              aria-label="Close preview"
-              className="grid size-9 place-items-center rounded-full bg-tile-panel hover:bg-tile-tile focus-visible:outline-2 focus-visible:outline-tile-accent"
-            >
-              <X size={16} aria-hidden />
-            </Dialog.Close>
+            <div className="flex items-center gap-2">
+              <Button
+                icon={ImageDown}
+                disabled={download.busy}
+                onClick={() => void download.download({ format: 'png' })}
+              >
+                {download.preparing === 'png' ? 'Preparing…' : 'Save image'}
+              </Button>
+              <Dialog.Close
+                aria-label="Close preview"
+                className="grid size-9 place-items-center rounded-full bg-tile-panel hover:bg-tile-tile focus-visible:outline-2 focus-visible:outline-tile-accent"
+              >
+                <X size={16} aria-hidden />
+              </Dialog.Close>
+            </div>
           </header>
           <FitWidth view={view} />
         </Dialog.Content>

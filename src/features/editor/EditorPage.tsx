@@ -1,4 +1,4 @@
-import { ChevronLeft, Download, LayoutTemplate, Printer } from 'lucide-react'
+import { ChevronLeft, Download, ImageDown, LayoutTemplate, Printer } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { useSaveStatus } from '@/app/saveStatus'
@@ -12,7 +12,7 @@ import { useToast } from '@/ui/toastContext'
 import { useLayout } from '@/ui/useLayout'
 import { printInvoice } from '@/features/print/printInvoice'
 import { MobileEditor } from './MobileEditor'
-import { useDownloadPdf } from './useDownloadPdf'
+import { useDownloadInvoice } from './useDownloadInvoice'
 import { PreviewPane } from './preview'
 import { DetailsFields, ItemsCard, NotesCard, PaymentCard, SummaryCard } from './sections'
 import { HeroSummary, StatusMenu } from './StatusControls'
@@ -84,7 +84,7 @@ function DesktopEditor() {
 function EditorHeader() {
   const { invoice, set } = useEditor()
   const toast = useToast()
-  const pdf = useDownloadPdf()
+  const pdf = useDownloadInvoice()
   const save = useSaveStatus()
   const saved = { saving: 'saving…', saved: 'autosaved in this browser', error: "couldn't save" }[
     save
@@ -138,12 +138,19 @@ function EditorHeader() {
           Print
         </Button>
         <Button
+          icon={ImageDown}
+          disabled={pdf.busy}
+          onClick={() => void pdf.download({ format: 'png' })}
+        >
+          {pdf.preparing === 'png' ? 'Preparing…' : 'Image'}
+        </Button>
+        <Button
           variant="primary"
           icon={Download}
           disabled={pdf.busy}
           onClick={() => void pdf.download()}
         >
-          {pdf.busy ? 'Preparing…' : 'Download PDF'}
+          {pdf.preparing === 'pdf' ? 'Preparing…' : 'Download PDF'}
         </Button>
       </div>
     </header>

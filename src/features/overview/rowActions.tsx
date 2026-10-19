@@ -5,6 +5,7 @@ import {
   Ellipsis,
   FileText,
   HardDriveDownload,
+  ImageDown,
   Send,
   Trash2,
   Undo2,
@@ -97,6 +98,11 @@ export function useRowActions(date: (iso: string) => string) {
           icon={Download}
           label="Download PDF"
           onSelect={() => void downloadInvoiceById(id).catch(fail)}
+        />
+        <MenuItem
+          icon={ImageDown}
+          label="Download image"
+          onSelect={() => void downloadInvoiceById(id, 'png').catch(fail)}
         />
         {(status === 'sent' || status === 'overdue') && (
           <MenuItem

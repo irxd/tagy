@@ -12,7 +12,7 @@ import { getSettings } from '@/db/settings'
 import type { Invoice } from '@/db/types'
 import { todayISO } from '@/domain/dates'
 import { backToDraft, markPaid, markSent, undoPaid, type Payment } from '@/domain/status'
-import { downloadInvoicePdf } from '@/pdf/download'
+import { downloadInvoice, type DownloadFormat } from '@/pdf/download'
 import { buildInvoiceView } from '@/templates/view'
 
 /*
@@ -57,8 +57,11 @@ export async function draftInvoice(id: string): Promise<void> {
 
 export { deleteInvoice, duplicateInvoice, restoreInvoice }
 
-/** Builds the invoice's view from the database and downloads it as a PDF. */
-export async function downloadInvoiceById(id: string): Promise<void> {
+/** Builds the invoice's view from the database and downloads it as a PDF or PNG. */
+export async function downloadInvoiceById(
+  id: string,
+  format: DownloadFormat = 'pdf',
+): Promise<void> {
   const invoice = await load(id)
   const settings = await getSettings()
   const client = invoice.clientId ? await getClient(invoice.clientId) : undefined
@@ -68,7 +71,7 @@ export async function downloadInvoiceById(id: string): Promise<void> {
   const logoUrl = logo ? URL.createObjectURL(logo.data) : null
   try {
     const view = buildInvoiceView({ invoice, settings, client, logoUrl, today: todayISO() })
-    await downloadInvoicePdf(view, invoice.templateId)
+    await downloadInvoice(view, invoice.templateId, format)
   } finally {
     if (logoUrl) URL.revokeObjectURL(logoUrl)
   }
