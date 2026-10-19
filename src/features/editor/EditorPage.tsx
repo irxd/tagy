@@ -1,6 +1,6 @@
-import { Download, LayoutTemplate, Printer } from 'lucide-react'
+import { ChevronLeft, Download, LayoutTemplate, Printer } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router'
+import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { useSaveStatus } from '@/app/saveStatus'
 import { createInvoice } from '@/db/invoices'
 import type { TemplateId } from '@/db/types'
@@ -92,6 +92,13 @@ function EditorHeader() {
   return (
     <header className="flex items-start justify-between gap-4">
       <div className="flex min-w-0 flex-col gap-2">
+        <Link
+          to="/"
+          className="mb-2 inline-flex items-center gap-1.5 self-start rounded-full border border-tile-border-strong bg-tile-panel py-2 pr-4 pl-3 text-sm font-semibold text-tile-fg transition-colors hover:bg-tile-tile focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tile-accent"
+        >
+          <ChevronLeft size={16} aria-hidden />
+          Back to overview
+        </Link>
         <div className="flex items-center gap-3">
           <h1 className="truncate text-[34px] leading-tight font-bold tracking-[-1.3px]">
             {invoice.status === 'draft' ? 'New invoice' : invoice.number}

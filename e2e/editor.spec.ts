@@ -170,3 +170,9 @@ test('full preview opens the whole page and closes', async ({ page }) => {
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
 })
+
+test('the back link returns to the overview', async ({ page }) => {
+  await openDesignInvoice(page)
+  await page.getByRole('link', { name: 'Back to overview' }).click()
+  await expect(page).toHaveURL(/\/$/)
+})
