@@ -121,30 +121,36 @@ function BottomSheet({
         <Drawer.Content
           {...(!description && { 'aria-describedby': undefined })}
           onCloseAutoFocus={returnFocus}
-          className="fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col gap-4 overflow-y-auto rounded-t-[28px] bg-tile-panel px-5 pt-2.5 shadow-[0_-8px_32px_#1a1f2b2e] focus:outline-none"
+          className="fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col rounded-t-[28px] bg-tile-panel shadow-[0_-8px_32px_#1a1f2b2e] focus:outline-none"
         >
-          <div className="mx-auto h-[5px] w-10 shrink-0 rounded-[3px] bg-tile-border-strong" />
-          {Icon && (
-            <span className={cn('grid size-12 place-items-center rounded-[14px]', iconTones[tone])}>
-              <Icon size={22} aria-hidden />
-            </span>
-          )}
-          <div className="flex flex-col gap-2">
-            <Drawer.Title className="text-[22px] font-bold tracking-[-0.5px] text-tile-fg">
-              {title}
-            </Drawer.Title>
-            {description && (
-              <Drawer.Description className="text-[15px] leading-[1.55] text-tile-muted">
-                {description}
-              </Drawer.Description>
+          {/* Scroll inside, not on Content: vaul hangs a 200%-tall ::after below
+              the sheet, which would otherwise scroll as blank space. */}
+          <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-5 pt-2.5">
+            <div className="mx-auto h-[5px] w-10 shrink-0 rounded-[3px] bg-tile-border-strong" />
+            {Icon && (
+              <span
+                className={cn('grid size-12 place-items-center rounded-[14px]', iconTones[tone])}
+              >
+                <Icon size={22} aria-hidden />
+              </span>
+            )}
+            <div className="flex flex-col gap-2">
+              <Drawer.Title className="text-[22px] font-bold tracking-[-0.5px] text-tile-fg">
+                {title}
+              </Drawer.Title>
+              {description && (
+                <Drawer.Description className="text-[15px] leading-[1.55] text-tile-muted">
+                  {description}
+                </Drawer.Description>
+              )}
+            </div>
+            {children}
+            {actions && (
+              <div className="flex flex-col-reverse gap-2 pt-1 pb-[max(34px,env(safe-area-inset-bottom))]">
+                {actions}
+              </div>
             )}
           </div>
-          {children}
-          {actions && (
-            <div className="flex flex-col-reverse gap-2 pt-1 pb-[max(34px,env(safe-area-inset-bottom))]">
-              {actions}
-            </div>
-          )}
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>

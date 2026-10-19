@@ -96,3 +96,22 @@ test('mobile: the form is a sheet that Back closes', async ({ page }, testInfo) 
   await page.goBack()
   await expect(page.getByRole('dialog')).toHaveCount(0)
 })
+
+test('mobile: the sheet scrolls no further than its content', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('mobile'), 'mobile layout only')
+  await page.goto('/clients?client=new')
+  const sheet = page.getByRole('dialog', { name: 'New client' })
+  await expect(sheet).toBeVisible()
+  // vaul's ::after below the sheet must not add blank scroll space.
+  const extra = await sheet.evaluate((el) => {
+    const scroller = [el, ...el.querySelectorAll('*')].find(
+      (n) => getComputedStyle(n).overflowY === 'auto',
+    )!
+    const content = [...scroller.children].reduce(
+      (end, c) => Math.max(end, (c as HTMLElement).offsetTop + (c as HTMLElement).offsetHeight),
+      0,
+    )
+    return scroller.scrollHeight - content
+  })
+  expect(extra).toBeLessThan(40)
+})
