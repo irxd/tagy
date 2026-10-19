@@ -2,7 +2,9 @@ import type { LucideIcon } from 'lucide-react'
 import { Calendar, ChevronDown } from 'lucide-react'
 import {
   useId,
+  useState,
   type InputHTMLAttributes,
+  type MouseEvent,
   type ReactNode,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
@@ -13,7 +15,8 @@ import { cn } from './cn'
  * Tile/Field — a soft tile with a small label over a bold value. The label
  * turns accent and the tile gets an accent border while focused
  * (Tile/Field/Focused). Inputs are native so mobile keyboards, date pickers
- * and screen readers work without extra code.
+ * and screen readers work without extra code. The whole tile is the hit
+ * area: a press on its padding or icon focuses the control.
  */
 
 const shell = cn(
@@ -35,10 +38,19 @@ interface FieldFrameProps {
   children: ReactNode
 }
 
+function focusControl(id: string) {
+  return (e: MouseEvent) => {
+    if (e.target instanceof HTMLElement && e.target.closest('input, textarea, select, label'))
+      return
+    e.preventDefault()
+    document.getElementById(id)?.focus()
+  }
+}
+
 function FieldFrame({ id, label, error, hint, trailing, className, children }: FieldFrameProps) {
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <div className={shell}>
+      <div className={cn(shell, 'cursor-text')} onMouseDown={focusControl(id)}>
         <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
           <label htmlFor={id} className={labelClass}>
             {label}
@@ -121,16 +133,24 @@ export interface SelectOption {
   label: string
 }
 
-/** Tile/Field/Select — native select styled as a field, chevron on the right. */
+/**
+ * Tile/Field/Select — shows the chosen option's label with a chevron; the
+ * native select sits on top, invisible, so a press anywhere opens it.
+ */
 export function SelectField({
   label,
   error,
   hint,
   className,
   options,
+  onChange,
   ...select
 }: CommonProps & SelectHTMLAttributes<HTMLSelectElement> & { options: SelectOption[] }) {
   const id = useId()
+  const [uncontrolled, setUncontrolled] = useState(
+    String(select.defaultValue ?? options[0]?.value ?? ''),
+  )
+  const current = select.value === undefined ? uncontrolled : String(select.value)
   return (
     <FieldFrame
       id={id}
@@ -146,10 +166,17 @@ export function SelectField({
         />
       }
     >
+      <span className={cn(valueClass, 'pointer-events-none truncate')} aria-hidden>
+        {options.find((o) => o.value === current)?.label}
+      </span>
       <select
-        className={cn(valueClass, 'cursor-pointer appearance-none')}
+        className="absolute inset-0 cursor-pointer appearance-none opacity-0"
         {...a11y(id, error)}
         {...select}
+        onChange={(e) => {
+          setUncontrolled(e.target.value)
+          onChange?.(e)
+        }}
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
