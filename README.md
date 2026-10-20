@@ -24,6 +24,13 @@ Everything lives in the browser's IndexedDB on your device. There is no backend 
 - Clearing your browser data deletes your invoices. Tagy reminds you to export a backup now and then, and asks the browser to keep its storage.
 - To move to another device, export a backup there and import it.
 
+## What's next
+
+Planned for 0.3.0:
+
+- **New template designs**: rework all four templates (Minimal, Classic, Bold, Studio), in both the HTML preview and the PDF.
+- **Animation**: add motion to the interface, such as screen changes, sheets and dialogs, and status changes, and respect the system's reduced-motion setting.
+
 ## How it's built
 
 React 19, TypeScript and Vite, with Tailwind CSS for styling. Data is stored with Dexie (IndexedDB), PDFs are made with React-PDF, and Workbox handles offline support. The interface uses Radix UI and Vaul.
