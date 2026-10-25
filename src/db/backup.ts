@@ -1,7 +1,13 @@
 import { z } from 'zod'
 import { base64ToBlob, blobToBase64 } from '@/lib/base64'
 import { db } from './db'
-import { invoiceV1toV2, settingsV1toV2, taxRatesV1 } from './migrations'
+import {
+  invoiceV1toV2,
+  settingsV1toV2,
+  settingsV2toV3,
+  settingsV3toV4,
+  taxRatesV1,
+} from './migrations'
 import type { AppSettings, Client, Invoice, StoredBlob } from './types'
 
 /*
@@ -10,7 +16,7 @@ import type { AppSettings, Client, Invoice, StoredBlob } from './types'
  * replaces all data in one transaction — a failed import changes nothing.
  */
 
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 4
 
 export class BackupError extends Error {}
 
@@ -18,6 +24,18 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 const money = z.number().int()
 const terms = z.enum(['receipt', 'net7', 'net14', 'net30'])
 const template = z.enum(['minimal', 'classic', 'bold', 'studio'])
+const font = z.enum([
+  'template',
+  'geist',
+  'inter-tight',
+  'dm-sans',
+  'newsreader',
+  'source-serif-4',
+  'instrument-serif',
+  'geist-mono',
+  'dm-mono',
+  'space-mono',
+])
 
 const lineItem = z.object({
   id: z.string(),
@@ -100,7 +118,7 @@ const settingsSchema: z.ZodType<AppSettings> = z.object({
   defaultTaxPct: z.number().min(0).max(100),
   defaultTemplate: template,
   accent: z.enum(['blue', 'ink', 'green', 'orange', 'pink', 'violet']),
-  font: z.enum(['sans', 'serif', 'mono']),
+  fonts: z.object({ heading: font, body: font }),
   paper: z.enum(['a4', 'letter']),
   showFields: z.object({
     logo: z.boolean(),
@@ -145,6 +163,14 @@ const migrations: Record<number, (data: unknown) => unknown> = {
         : d.invoices,
       settings: d.settings ? settingsV1toV2(d.settings) : d.settings,
     }
+  },
+  2: (data) => {
+    const d = data as { settings?: Record<string, unknown> | null }
+    return { ...d, settings: d.settings ? settingsV2toV3(d.settings) : d.settings }
+  },
+  3: (data) => {
+    const d = data as { settings?: Record<string, unknown> | null }
+    return { ...d, settings: d.settings ? settingsV3toV4(d.settings) : d.settings }
   },
 }
 

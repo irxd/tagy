@@ -15,7 +15,24 @@ export type PaymentTerms = 'receipt' | 'net7' | 'net14' | 'net30'
 
 export type TemplateId = 'minimal' | 'classic' | 'bold' | 'studio'
 export type Accent = 'blue' | 'ink' | 'green' | 'orange' | 'pink' | 'violet'
-export type TemplateFont = 'sans' | 'serif' | 'mono'
+/** A font from the Font setting's list. */
+export type NamedFont =
+  | 'geist'
+  | 'inter-tight'
+  | 'dm-sans'
+  | 'newsreader'
+  | 'source-serif-4'
+  | 'instrument-serif'
+  | 'geist-mono'
+  | 'dm-mono'
+  | 'space-mono'
+/** `template` keeps each template's own type. */
+export type TemplateFont = 'template' | NamedFont
+/** Headings are each template's display type; body is everything else, figures included. */
+export interface TemplateFonts {
+  heading: TemplateFont
+  body: TemplateFont
+}
 export type Paper = 'a4' | 'letter'
 
 export interface LineItem {
@@ -116,7 +133,7 @@ export interface AppSettings {
   defaultTaxPct: number
   defaultTemplate: TemplateId
   accent: Accent
-  font: TemplateFont
+  fonts: TemplateFonts
   paper: Paper
   showFields: ShowFields
   defaultNotes: string

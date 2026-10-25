@@ -161,7 +161,7 @@ test('full preview opens the whole page and closes', async ({ page }) => {
   await openDesignInvoice(page)
   await page.getByRole('button', { name: 'Full preview', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Preview · INV-0042' })
-  await expect(dialog.getByRole('article')).toContainText('Payment details')
+  await expect(dialog.getByRole('article')).toContainText('Account 000123454821')
   // The page frame must fit the whole invoice (and scroll), not clip its bottom.
   const [frame, invoice] = await dialog
     .getByRole('article')

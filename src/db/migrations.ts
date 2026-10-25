@@ -32,3 +32,26 @@ export function settingsV1toV2(settings: Raw): Raw {
 export function taxRatesV1(settings: Raw | undefined): V1TaxRate[] {
   return (settings?.taxRates as V1TaxRate[] | undefined) ?? []
 }
+
+const FONTS_V2: Record<string, string> = {
+  sans: 'template',
+  serif: 'newsreader',
+  mono: 'geist-mono',
+}
+
+/**
+ * v2 → v3: the Font setting becomes a named font for headings and one for
+ * body text, instead of one Sans, Serif or Mono choice.
+ */
+export function settingsV2toV3(settings: Raw): Raw {
+  const { font, ...rest } = settings
+  if (font === undefined) return settings
+  const named = FONTS_V2[font as string] ?? (typeof font === 'string' ? font : 'template')
+  return { ...rest, fonts: { heading: named, body: named } }
+}
+
+/**
+ * v3 → v4: the same step again, for databases upgraded by an earlier build
+ * of v3 that kept one named `font` instead of heading and body `fonts`.
+ */
+export const settingsV3toV4 = settingsV2toV3

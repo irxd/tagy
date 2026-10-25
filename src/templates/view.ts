@@ -1,5 +1,5 @@
-import type { Accent, AppSettings, Client, Invoice, Paper, TemplateFont } from '@/db/types'
-import { daysBetween, formatDate } from '@/domain/dates'
+import type { Accent, AppSettings, Client, Invoice, Paper, TemplateFonts } from '@/db/types'
+import { daysBetween, formatDate, TERM_LABELS } from '@/domain/dates'
 import { formatAmount, formatMoney } from '@/domain/money'
 import { displayStatus, type DisplayStatus } from '@/domain/status'
 import { computeTotals, invoiceTaxPct } from '@/domain/totals'
@@ -44,7 +44,7 @@ export interface InvoiceView {
   number: string
   status: DisplayStatus
   accent: string
-  font: TemplateFont
+  fonts: TemplateFonts
   paper: Paper
   business: {
     name: string
@@ -60,6 +60,8 @@ export interface InvoiceView {
   due: string
   /** `in 14 days`, `Due today`, `12 days late` or `Paid 28 Oct`. */
   dueNote: string
+  /** Payment terms: `Net 14`, `On receipt`. */
+  terms: string
   reference: string
   lines: ViewLine[]
   subtotal: string
@@ -116,7 +118,7 @@ export function buildInvoiceView({
     number: invoice.number,
     status,
     accent: ACCENTS[settings.accent],
-    font: settings.font,
+    fonts: settings.fonts,
     paper: settings.paper,
     business: {
       name: business.name,
@@ -139,6 +141,7 @@ export function buildInvoiceView({
     issued: formatDate(invoice.issueDate, settings.dateFormat),
     due: formatDate(invoice.dueDate, settings.dateFormat),
     dueNote,
+    terms: TERM_LABELS[invoice.terms],
     reference: invoice.reference,
     lines: invoice.items.map((item, i) => ({
       id: item.id,

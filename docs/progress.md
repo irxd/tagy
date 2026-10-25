@@ -2,6 +2,26 @@
 
 What was built in each phase, and where it differs from `build-plan.md`. Newest first.
 
+## 0.3.0 — New template designs
+
+**Built**
+
+- Four new templates from the "Template Explorations" board in `tagy.pen`, each replacing an old one under its id so saved invoices and settings carry over: Swiss Ledger (`minimal`), Serif Ledger (`classic`), Editorial Mono (`studio`) and Ruled Index (`bold`). Each has an HTML and a PDF version.
+- The Font setting picks fonts by name, separately for headings and body text: Template (the template's own type) or one of Geist, Inter Tight, DM Sans, Newsreader, Source Serif 4, Instrument Serif, Geist Mono, DM Mono and Space Mono. Figures follow the body font. Source Serif 4, Instrument Serif and Space Mono are new.
+- PDF fonts register from one table, every family at weights 400–700 plus italic, falling back to the nearest cut a family has.
+- The logo, or the business initial in an accent circle when there's none, is one shared mark in HTML and PDF.
+- Data: Dexie version 3 turns the old Sans / Serif / Mono setting into heading and body fonts (Sans → Template, Serif → Newsreader, Mono → Geist Mono); version 4 repeats that for databases that took an earlier build of version 3. Backups (schemaVersion 4) get the same steps on import.
+
+**Differences from the design boards**
+
+- Every template shows what the form holds and nothing else. Dropped from the boards: company codes, "Issued by", the "©" mark and project line. Added where the boards had no place: reference, due note, client contact and email, tax IDs, website, item descriptions, notes, payment details, payment terms and the signature line. The monogram on Serif Ledger holds the logo.
+- The boards draw a monochrome page; the accent colour marks the Total and the logo placeholder.
+- Only Swiss Ledger and Serif Ledger show the logo. Editorial Mono and Ruled Index leave it out, as their boards do, so the Business logo toggle has no effect on them.
+- Sizes are the boards' scaled from 416 to 560 px, so body text prints at the same ~10.5 pt as before.
+- Editorial Mono and Ruled Index keep text 24 px from the page edge instead of the boards' 10–12 px, which many printers can't reach. Ruled Index's rules and grey band still run edge to edge.
+- Editorial Mono's poster title sizes itself from the heading font's measured width (`INVOICE_EM`), so a wider font stays on one line. Its gaps are tighter than drawn so the design invoice fits one US Letter page.
+- Editorial Mono's columns read Qty, not est. hours, since quantities aren't always hours. Its number pill shows the invoice number and issue date in the chosen date format.
+
 ## After launch prep — changes from review
 
 - **Tax is set per invoice.** Before, an invoice pointed to a rate saved in Settings, so with no rate in Settings the editor's Tax field only offered "No tax". Now each invoice stores its own percent: the editor's Tax field is a percent box, new invoices start with the Settings default (if any), and Apply tax works without a Settings rate. Sent invoices need no tax snapshot any more. Existing data is upgraded in the browser (Dexie version 2) and old backups (schemaVersion 1) are upgraded on import; both keep the percent each invoice used.

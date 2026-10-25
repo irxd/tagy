@@ -1,6 +1,6 @@
 import { Dexie } from 'dexie'
 import { describe, expect, it } from 'vitest'
-import { createBackup, parseBackup } from './backup'
+import { createBackup, parseBackup, SCHEMA_VERSION } from './backup'
 import { db, TagyDB } from './db'
 import { createInvoice } from './invoices'
 import { updateSettings } from './settings'
@@ -68,10 +68,96 @@ describe('v1 → v2: tax moves onto each invoice', () => {
     }
 
     const { file } = parseBackup(JSON.stringify(v1))
-    expect(file.schemaVersion).toBe(2)
+    expect(file.schemaVersion).toBe(SCHEMA_VERSION)
     expect(file.data.invoices[0]).toMatchObject({ taxPct: 8, applyTax: true })
     expect(file.data.invoices[0]).not.toHaveProperty('taxRateId')
     expect(file.data.settings).toMatchObject({ defaultTaxPct: 8 })
     expect(file.data.settings).not.toHaveProperty('taxRates')
+  })
+})
+
+describe('v2 → v3: the Font setting names a heading and a body font', () => {
+  it('upgrades the browser database', async () => {
+    const name = 'tagy-migrate-fonts-test'
+    const old = new Dexie(name)
+    old.version(2).stores({
+      invoices: 'id, &number, status, clientId, issueDate, dueDate, updatedAt',
+      clients: 'id, name',
+      settings: 'key',
+      blobs: 'id',
+    })
+    await old.table('settings').put({ key: 'app', font: 'serif' })
+    old.close()
+
+    const upgraded = new TagyDB(name)
+    expect(await upgraded.settings.get('app')).toEqual({
+      key: 'app',
+      fonts: { heading: 'newsreader', body: 'newsreader' },
+    })
+    upgraded.close()
+    await Dexie.delete(name)
+  })
+
+  it('imports a v2 backup file', async () => {
+    await Promise.all(db.tables.map((t) => t.clear()))
+    await updateSettings({ business: { name: 'Tagy Studio' } })
+    const v3 = await createBackup()
+    const { fonts: _, ...settings } = v3.data.settings!
+    for (const [old, font] of [
+      ['sans', 'template'],
+      ['serif', 'newsreader'],
+      ['mono', 'geist-mono'],
+    ]) {
+      const v2 = {
+        ...v3,
+        schemaVersion: 2,
+        data: { ...v3.data, settings: { ...settings, font: old } },
+      }
+      const { file } = parseBackup(JSON.stringify(v2))
+      expect(file.schemaVersion).toBe(SCHEMA_VERSION)
+      expect(file.data.settings?.fonts).toEqual({ heading: font, body: font })
+    }
+  })
+})
+
+describe('v3 → v4: databases on an earlier v3 get heading and body fonts', () => {
+  it('upgrades the browser database', async () => {
+    const name = 'tagy-migrate-fonts-v4-test'
+    const old = new Dexie(name)
+    old.version(3).stores({
+      invoices: 'id, &number, status, clientId, issueDate, dueDate, updatedAt',
+      clients: 'id, name',
+      settings: 'key',
+      blobs: 'id',
+    })
+    await old.table('settings').put({ key: 'app', font: 'space-mono' })
+    old.close()
+
+    const upgraded = new TagyDB(name)
+    expect(await upgraded.settings.get('app')).toEqual({
+      key: 'app',
+      fonts: { heading: 'space-mono', body: 'space-mono' },
+    })
+    upgraded.close()
+    await Dexie.delete(name)
+  })
+
+  it('leaves settings that already have fonts alone', async () => {
+    const name = 'tagy-migrate-fonts-v4-noop-test'
+    const old = new Dexie(name)
+    old.version(3).stores({
+      invoices: 'id, &number, status, clientId, issueDate, dueDate, updatedAt',
+      clients: 'id, name',
+      settings: 'key',
+      blobs: 'id',
+    })
+    const fonts = { heading: 'instrument-serif', body: 'geist' }
+    await old.table('settings').put({ key: 'app', fonts })
+    old.close()
+
+    const upgraded = new TagyDB(name)
+    expect(await upgraded.settings.get('app')).toEqual({ key: 'app', fonts })
+    upgraded.close()
+    await Dexie.delete(name)
   })
 })

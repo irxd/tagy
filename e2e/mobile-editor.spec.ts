@@ -83,6 +83,6 @@ test('review switches template and accent', async ({ page }) => {
   await page.goto('/invoices/inv-42?step=review')
   await page.getByRole('radio', { name: 'green' }).click()
   await expect(page.getByRole('radio', { name: 'green' })).toHaveAttribute('aria-checked', 'true')
-  await page.getByRole('radio', { name: 'Classic' }).click()
-  await expect(page.getByText('Classic · A4')).toBeVisible()
+  await page.getByRole('radio', { name: 'Serif Ledger' }).click()
+  await expect(page.getByText('Serif Ledger · A4')).toBeVisible()
 })

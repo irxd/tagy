@@ -5,9 +5,18 @@ import { trackSave } from '@/app/saveStatus'
 import { defaultSettings } from '@/db/defaults'
 import { useBlobUrl, useClient, useInvoices, useSettings } from '@/db/hooks'
 import { updateSettings, type SettingsPatch } from '@/db/settings'
-import type { Accent, AppSettings, Paper, ShowFields, TemplateFont, TemplateId } from '@/db/types'
+import type {
+  Accent,
+  AppSettings,
+  NamedFont,
+  Paper,
+  ShowFields,
+  TemplateFont,
+  TemplateId,
+} from '@/db/types'
 import { todayISO } from '@/domain/dates'
 import { TEMPLATE_LABELS } from '@/features/settings/options'
+import { FONT_LABELS, FONTS, TEMPLATE_FONTS, type FontRole } from '@/templates/fonts'
 import { InvoiceDocument } from '@/templates/InvoiceDocument'
 import { sampleInvoice } from '@/templates/sample'
 import { ACCENTS, buildInvoiceView, PAGE_WIDTH, type InvoiceView } from '@/templates/view'
@@ -20,16 +29,11 @@ import { useLayout } from '@/ui/useLayout'
 
 const TEMPLATE_IDS = Object.keys(TEMPLATE_LABELS) as TemplateId[]
 const DESCRIPTIONS: Record<TemplateId, string> = {
-  minimal: 'Ink on paper, mono figures',
-  classic: 'Serif letterhead, double rules',
-  bold: 'Accent band leads with the total',
-  studio: 'Details in a side rail',
+  minimal: 'Big sender masthead, hairline grid',
+  classic: 'Bookish serif in one ruled box',
+  bold: 'Full-width ruled rows, grey service band',
+  studio: 'Poster serif title over typewriter mono',
 }
-const FONT_SAMPLES: { id: TemplateFont; label: string; family: string }[] = [
-  { id: 'sans', label: 'Sans', family: "'Inter Variable', sans-serif" },
-  { id: 'serif', label: 'Serif', family: "'Newsreader Variable', serif" },
-  { id: 'mono', label: 'Mono', family: "'Geist Mono Variable', monospace" },
-]
 const SHOW: { key: keyof ShowFields; label: string }[] = [
   { key: 'logo', label: 'Business logo' },
   { key: 'taxId', label: 'Tax ID' },
@@ -63,7 +67,7 @@ function Templates({ settings }: { settings: AppSettings }) {
 
   function reset() {
     const d = defaultSettings()
-    save({ accent: d.accent, font: d.font, paper: d.paper, showFields: d.showFields })
+    save({ accent: d.accent, fonts: d.fonts, paper: d.paper, showFields: d.showFields })
     setPicked(settings.defaultTemplate)
   }
 
@@ -89,7 +93,7 @@ function Templates({ settings }: { settings: AppSettings }) {
       defaultId={settings.defaultTemplate}
     />
   )
-  const customizer = <Customizer settings={settings} save={save} />
+  const customizer = <Customizer settings={settings} picked={picked} save={save} />
   const preview = <Preview view={view} template={picked} />
 
   if (layout === 'mobile') {
@@ -237,11 +241,17 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 
 function Customizer({
   settings,
+  picked,
   save,
 }: {
   settings: AppSettings
+  picked: TemplateId
   save: (patch: SettingsPatch) => void
 }) {
+  const [role, setRole] = useState<FontRole>('heading')
+  const own = TEMPLATE_FONTS[picked][role]
+  const current = settings.fonts[role]
+  const pickFont = (font: TemplateFont) => save({ fonts: { ...settings.fonts, [role]: font } })
   return (
     <div className="flex flex-col gap-2.5">
       <Group title="Accent color">
@@ -265,32 +275,45 @@ function Customizer({
         </div>
       </Group>
       <Group title="Font">
-        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Font">
-          {FONT_SAMPLES.map((f) => (
+        <div className="flex gap-1.5" role="radiogroup" aria-label="Font for">
+          {(['heading', 'body'] as FontRole[]).map((r) => (
             <button
-              key={f.id}
+              key={r}
               type="button"
               role="radio"
-              aria-checked={settings.font === f.id}
-              aria-label={f.label}
-              onClick={() => save({ font: f.id })}
+              aria-checked={role === r}
+              onClick={() => setRole(r)}
               className={cn(
-                'flex flex-col items-center gap-0.5 rounded-tile-md border bg-tile-panel py-2.5 focus-visible:outline-2 focus-visible:outline-tile-accent',
-                settings.font === f.id ? 'border-tile-accent' : 'border-transparent',
+                'rounded-full py-2 pr-3 pl-3.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-tile-accent',
+                role === r ? 'bg-tile-fg text-white' : 'bg-tile-panel text-tile-fg',
               )}
             >
-              <span className="text-[22px]" style={{ fontFamily: f.family }} aria-hidden>
-                Aa
-              </span>
-              <span
-                className={cn(
-                  'text-xs',
-                  settings.font === f.id ? 'font-bold text-tile-fg' : 'text-tile-muted',
-                )}
-              >
-                {f.label}
-              </span>
+              {r === 'heading' ? 'Heading' : 'Body'}
             </button>
+          ))}
+        </div>
+        <div
+          className="grid grid-cols-3 gap-2"
+          role="radiogroup"
+          aria-label={role === 'heading' ? 'Heading font' : 'Body font'}
+        >
+          <FontOption
+            id="template"
+            label="Template"
+            detail={FONT_LABELS[own]}
+            family={FONTS[own]}
+            selected={current === 'template'}
+            onPick={pickFont}
+          />
+          {(Object.keys(FONT_LABELS) as NamedFont[]).map((f) => (
+            <FontOption
+              key={f}
+              id={f}
+              label={FONT_LABELS[f]}
+              family={FONTS[f]}
+              selected={current === f}
+              onPick={pickFont}
+            />
           ))}
         </div>
       </Group>
@@ -352,5 +375,50 @@ function Preview({ view, template }: { view: InvoiceView; template: TemplateId }
         <InvoiceDocument template={template} view={view} />
       </div>
     </section>
+  )
+}
+
+/** One Font choice: "Aa" in the font over its name. Template spans the row. */
+function FontOption({
+  id,
+  label,
+  detail,
+  family,
+  selected,
+  onPick,
+}: {
+  id: TemplateFont
+  label: string
+  detail?: string
+  family: string
+  selected: boolean
+  onPick: (font: TemplateFont) => void
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      aria-label={label}
+      onClick={() => onPick(id)}
+      className={cn(
+        'flex items-center gap-0.5 rounded-tile-md border bg-tile-panel px-2 py-2.5 focus-visible:outline-2 focus-visible:outline-tile-accent',
+        detail ? 'col-span-3 justify-center gap-3' : 'flex-col',
+        selected ? 'border-tile-accent' : 'border-transparent',
+      )}
+    >
+      <span className="text-[22px] leading-tight" style={{ fontFamily: family }} aria-hidden>
+        Aa
+      </span>
+      <span
+        className={cn(
+          'text-xs whitespace-nowrap',
+          selected ? 'font-bold text-tile-fg' : 'text-tile-muted',
+        )}
+      >
+        {label}
+        {detail && <span className="font-normal text-tile-muted"> · {detail}</span>}
+      </span>
+    </button>
   )
 }

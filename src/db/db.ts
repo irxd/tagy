@@ -1,5 +1,11 @@
 import { Dexie, type EntityTable } from 'dexie'
-import { invoiceV1toV2, settingsV1toV2, taxRatesV1 } from './migrations'
+import {
+  invoiceV1toV2,
+  settingsV1toV2,
+  settingsV2toV3,
+  settingsV3toV4,
+  taxRatesV1,
+} from './migrations'
 import type { AppSettings, Client, Invoice, StoredBlob } from './types'
 
 export class TagyDB extends Dexie {
@@ -30,6 +36,18 @@ export class TagyDB extends Dexie {
             ref.value = invoiceV1toV2(invoice, rates)
           })
         if (settings) await tx.table('settings').put(settingsV1toV2(settings))
+      })
+    this.version(3)
+      .stores({})
+      .upgrade(async (tx) => {
+        const settings = await tx.table('settings').get('app')
+        if (settings) await tx.table('settings').put(settingsV2toV3(settings))
+      })
+    this.version(4)
+      .stores({})
+      .upgrade(async (tx) => {
+        const settings = await tx.table('settings').get('app')
+        if (settings) await tx.table('settings').put(settingsV3toV4(settings))
       })
   }
 }

@@ -1,6 +1,7 @@
-import { Document, Image, Page, Text, View, type Styles } from '@react-pdf/renderer'
+import { Document, Image, Page, Path, Svg, Text, View, type Styles } from '@react-pdf/renderer'
 import type { ReactNode } from 'react'
 import type { TemplateId } from '@/db/types'
+import { fitInvoiceTitle, fontIds } from '@/templates/fonts'
 import { PAGE_WIDTH, type InvoiceView } from '@/templates/view'
 import { initials } from '@/ui/initials'
 import { pdfFonts } from './fonts'
@@ -20,16 +21,21 @@ const PAPER_PT = {
 interface Ctx {
   view: InvoiceView
   u: (px: number) => number
-  text: string
-  figures: string
+  heading: string
+  body: string
 }
 
 export function InvoicePdf({ view, template }: { view: InvoiceView; template: TemplateId }) {
   const paper = PAPER_PT[view.paper]
   const k = paper.w / PAGE_WIDTH
-  const fonts = pdfFonts(template, view.font)
+  const fonts = pdfFonts(template, view.fonts)
   const ctx: Ctx = { view, u: (px) => px * k, ...fonts }
-  const Body = { minimal: Minimal, classic: Classic, bold: Bold, studio: Studio }[template]
+  const Body = {
+    minimal: SwissLedger,
+    classic: SerifLedger,
+    bold: RuledIndex,
+    studio: EditorialMono,
+  }[template]
   return (
     <Document
       title={`Invoice ${view.number}`}
@@ -51,16 +57,28 @@ function T({ style, children }: { style?: Style; children: ReactNode }) {
 
 const pick = <V,>(lines: (V | false | '' | null | undefined)[]) => lines.filter(Boolean) as V[]
 
-function businessLine(view: InvoiceView) {
+/** The business logo, or its initial in an accent circle when there's none. */
+function LogoMark({ ctx }: { ctx: Ctx }) {
+  const { view, u } = ctx
   const b = view.business
-  return pick<string>([
-    b.name,
-    b.address.replace(/\n+/g, ', '),
-    b.email,
-    b.phone,
-    b.website,
-    view.show.taxId && b.taxId ? `Tax ID ${b.taxId}` : '',
-  ]).join(' · ')
+  if (view.show.logo && b.logoUrl)
+    return <Image src={b.logoUrl} style={{ width: u(38), height: u(38), objectFit: 'contain' }} />
+  return (
+    <View
+      style={{
+        width: u(38),
+        height: u(38),
+        borderRadius: u(19),
+        backgroundColor: view.accent,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <T style={{ color: 'white', fontSize: u(16), fontWeight: 600, lineHeight: 1 }}>
+        {initials(b.name || '?').slice(0, 1)}
+      </T>
+    </View>
+  )
 }
 
 function TotalsRows({
@@ -90,673 +108,372 @@ function TotalsRows({
   )
 }
 
-/* ---------- Bold ---------- */
+/* ---------- Ruled Index ---------- */
 
-function Bold(ctx: Ctx) {
-  const { view, u, text } = ctx
+function RuledIndex(ctx: Ctx) {
+  const { view, u, heading, body } = ctx
   const INK = '#111111'
-  const MUTED = '#6E6E73'
-  const RULE = '#ECECEC'
-  const WASH = '#F4F4F5'
-  const label: Style = {
-    fontSize: u(8.5),
-    fontWeight: 600,
-    letterSpacing: u(1),
-    color: view.accent,
-  }
-  const small: Style = { fontSize: u(10), color: MUTED }
-  const cell = (w: number | null, align: 'left' | 'right' = 'right'): Style =>
-    w ? { width: u(w), textAlign: align } : { flex: 1, textAlign: align }
-
-  return (
-    <Page
-      size={PAPER_PT[view.paper].size}
-      style={{ fontFamily: text, color: INK, fontSize: u(10.5), lineHeight: 1.25 }}
-    >
-      <View
-        style={{
-          backgroundColor: view.accent,
-          paddingTop: u(28),
-          paddingHorizontal: u(32),
-          paddingBottom: u(26),
-          color: 'white',
-        }}
-      >
-        <View
-          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: u(8) }}>
-            {view.show.logo && view.business.logoUrl && (
-              <Image
-                src={view.business.logoUrl}
-                style={{
-                  width: u(20),
-                  height: u(20),
-                  borderRadius: u(4),
-                  backgroundColor: 'white',
-                  objectFit: 'contain',
-                }}
-              />
-            )}
-            <T style={{ fontSize: u(13), fontWeight: 700 }}>
-              {view.business.name || 'Your business'}
-            </T>
-          </View>
-          <T style={{ fontSize: u(10), fontWeight: 500, letterSpacing: u(0.5), opacity: 0.7 }}>
-            {view.number}
-          </T>
-        </View>
-        <View
-          style={{
-            marginTop: u(28),
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-          }}
-        >
-          <View style={{ gap: u(4) }}>
-            <T style={{ fontSize: u(9), fontWeight: 600, letterSpacing: u(1.2), opacity: 0.7 }}>
-              {view.status === 'paid' ? 'PAID' : 'AMOUNT DUE'}
-            </T>
-            <T style={{ fontSize: u(34), fontWeight: 700, letterSpacing: u(-1.2), lineHeight: 1 }}>
-              {view.total}
-            </T>
-          </View>
-          <T style={{ fontSize: u(11), fontWeight: 700, letterSpacing: u(3) }}>INVOICE</T>
-        </View>
-      </View>
-
-      <View
-        style={{
-          flexGrow: 1,
-          paddingTop: u(24),
-          paddingHorizontal: u(32),
-          paddingBottom: u(28),
-          gap: u(20),
-        }}
-      >
-        <View style={{ flexDirection: 'row', gap: u(16) }}>
-          <View style={{ flex: 2, gap: u(4) }}>
-            <T style={label}>BILLED TO</T>
-            <T style={{ fontSize: u(11), fontWeight: 600 }}>{view.client?.name ?? '—'}</T>
-            {pick<string>([
-              view.client?.contact,
-              view.client?.email,
-              view.client?.address,
-              view.show.taxId && view.client?.taxId ? `Tax ID ${view.client.taxId}` : '',
-            ]).map((line) => (
-              <T key={line} style={small}>
-                {line}
-              </T>
-            ))}
-          </View>
-          <View style={{ flex: 1, gap: u(4) }}>
-            <T style={label}>ISSUED</T>
-            <T style={{ fontSize: u(11), fontWeight: 600 }}>{view.issued}</T>
-            {view.reference && <T style={small}>Ref {view.reference}</T>}
-          </View>
-          <View style={{ flex: 1, gap: u(4) }}>
-            <T style={label}>DUE</T>
-            <T style={{ fontSize: u(11), fontWeight: 600 }}>{view.due}</T>
-            <T style={small}>{view.dueNote}</T>
-          </View>
-        </View>
-
-        <View>
-          <View
-            fixed
-            style={{
-              flexDirection: 'row',
-              backgroundColor: WASH,
-              borderWidth: 1,
-              borderColor: RULE,
-              borderRadius: u(4),
-              paddingVertical: u(7),
-              paddingHorizontal: u(10),
-              gap: u(12),
-              fontSize: u(8.5),
-              fontWeight: 600,
-              letterSpacing: u(1),
-              color: MUTED,
-            }}
-          >
-            <T style={cell(null, 'left')}>ITEM</T>
-            <T style={cell(36)}>QTY</T>
-            <T style={cell(80)}>RATE</T>
-            <T style={cell(80)}>AMOUNT</T>
-          </View>
-          {view.lines.map((line, i) => (
-            <View
-              key={line.id}
-              wrap={false}
-              style={{
-                flexDirection: 'row',
-                padding: u(10),
-                gap: u(12),
-                borderBottomWidth: i < view.lines.length - 1 ? 1 : 0,
-                borderColor: RULE,
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <T style={{ fontWeight: 500 }}>{line.title || 'Untitled item'}</T>
-                {line.description && (
-                  <T style={{ fontSize: u(9), color: MUTED, marginTop: u(2) }}>
-                    {line.description}
-                  </T>
-                )}
-              </View>
-              <T style={{ ...cell(36), color: MUTED }}>{line.qty}</T>
-              <T style={{ ...cell(80), color: MUTED }}>{line.rate}</T>
-              <T style={{ ...cell(80), fontWeight: 500 }}>{line.amount}</T>
-            </View>
-          ))}
-        </View>
-
-        <View
-          wrap={false}
-          style={{
-            alignSelf: 'flex-end',
-            width: u(180),
-            marginRight: u(10),
-            gap: u(6),
-            fontSize: u(10),
-          }}
-        >
-          <TotalsRows ctx={ctx} labelStyle={{ color: MUTED }} valueStyle={{ fontWeight: 500 }} />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              borderTopWidth: u(1.5),
-              borderColor: INK,
-              paddingTop: u(8),
-            }}
-          >
-            <T style={{ fontSize: u(11), fontWeight: 700 }}>Total</T>
-            <T style={{ fontSize: u(13), fontWeight: 700 }}>{view.total}</T>
-          </View>
-        </View>
-
-        {view.notes && <T style={{ fontSize: u(9.5), color: MUTED }}>{view.notes}</T>}
-
-        <View style={{ flexGrow: 1 }} />
-
-        <View wrap={false} style={{ gap: u(12) }}>
-          {view.paymentDetails && (
-            <View
-              style={{
-                backgroundColor: WASH,
-                borderRadius: u(6),
-                paddingVertical: u(12),
-                paddingHorizontal: u(14),
-                gap: u(2),
-              }}
-            >
-              <T style={{ fontSize: u(10), fontWeight: 600 }}>Payment details</T>
-              <T style={{ fontSize: u(9.5), color: MUTED }}>{view.paymentDetails}</T>
-            </View>
-          )}
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'flex-end',
-              gap: u(24),
-            }}
-          >
-            <T style={{ flex: 1, fontSize: u(8.5), color: MUTED, lineHeight: 1.45 }}>
-              {businessLine(view)}
-            </T>
-            {view.show.signature && <Signature ctx={ctx} color={MUTED} ink={INK} />}
-          </View>
-        </View>
-      </View>
-    </Page>
-  )
-}
-
-function Signature({
-  ctx,
-  color,
-  ink,
-  italic,
-}: {
-  ctx: Ctx
-  color: string
-  ink: string
-  italic?: boolean
-}) {
-  return (
-    <T
-      style={{
-        width: ctx.u(130),
-        borderTopWidth: 1,
-        borderColor: ink,
-        paddingTop: ctx.u(6),
-        fontSize: ctx.u(8.5),
-        color,
-        fontStyle: italic ? 'italic' : 'normal',
-      }}
-    >
-      Authorized signature
-    </T>
-  )
-}
-
-/* ---------- Minimal ---------- */
-
-function Minimal(ctx: Ctx) {
-  const { view, u, text, figures } = ctx
-  const INK = '#141414'
-  const MUTED = '#6B6B6B'
-  const RULE = '#E8E8E5'
+  const MUTED = '#7A7A7A'
+  const rule: Style = { borderBottomWidth: u(0.8), borderColor: '#8F8F8F' }
   const b = view.business
-  const label: Style = {
-    fontFamily: figures,
-    fontSize: u(8),
-    fontWeight: 500,
-    letterSpacing: u(0.8),
-    color: MUTED,
-  }
-  const num: Style = { fontFamily: figures }
-
-  const party = (title: string, lines: string[]) => {
-    const [first, ...rest] = lines
-    return (
-      <View style={{ flex: 1, gap: u(3) }}>
-        <T style={label}>{title}</T>
-        <T style={{ fontSize: u(11), fontWeight: 500 }}>{first ?? '—'}</T>
-        {rest.map((line) => (
-          <T key={line} style={{ fontSize: u(10), color: MUTED }}>
-            {line}
-          </T>
-        ))}
-      </View>
-    )
-  }
-
-  return (
-    <Page
-      size={PAPER_PT[view.paper].size}
-      style={{ fontFamily: text, color: INK, fontSize: u(10), lineHeight: 1.3, padding: u(32) }}
-    >
-      <View style={{ flexGrow: 1, gap: u(20) }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: u(8) }}>
-            {view.show.logo && b.logoUrl ? (
-              <Image
-                src={b.logoUrl}
-                style={{ width: u(20), height: u(20), borderRadius: u(5), objectFit: 'contain' }}
-              />
-            ) : (
-              <View
-                style={{
-                  width: u(20),
-                  height: u(20),
-                  borderRadius: u(5),
-                  backgroundColor: view.accent,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <T style={{ ...num, color: 'white', fontSize: u(10), fontWeight: 600 }}>
-                  {initials(b.name || '?').slice(0, 1)}
-                </T>
-              </View>
-            )}
-            <T style={{ fontSize: u(13), fontWeight: 600 }}>{b.name || 'Your business'}</T>
-          </View>
-          <View style={{ alignItems: 'flex-end', gap: u(4) }}>
-            <T style={{ fontSize: u(22), fontWeight: 500, letterSpacing: u(-0.6), lineHeight: 1 }}>
-              Invoice
-            </T>
-            <T style={{ ...num, fontSize: u(10), color: MUTED }}>{view.number}</T>
-          </View>
-        </View>
-
-        <View
-          style={{
-            flexDirection: 'row',
-            gap: u(16),
-            paddingVertical: u(14),
-            borderTopWidth: 1,
-            borderBottomWidth: 1,
-            borderColor: RULE,
-          }}
-        >
-          {[
-            ['ISSUED', view.issued, 11],
-            ['DUE', view.due, 11],
-            ['AMOUNT DUE', view.total, 13],
-          ].map(([l, v, size]) => (
-            <View key={l as string} style={{ flex: 1, gap: u(5) }}>
-              <T style={label}>{l}</T>
-              <T style={{ ...num, fontSize: u(size as number), fontWeight: 500 }}>{v}</T>
-            </View>
-          ))}
-        </View>
-
-        <View style={{ flexDirection: 'row', gap: u(16) }}>
-          {party(
-            'FROM',
-            pick<string>([
-              b.name,
-              b.email,
-              b.address,
-              view.show.taxId && b.taxId ? `Tax ID ${b.taxId}` : '',
-            ]),
-          )}
-          {party(
-            'BILL TO',
-            pick<string>([
-              view.client?.name ?? '—',
-              view.client?.email,
-              view.client?.address,
-              view.show.taxId && view.client?.taxId ? `Tax ID ${view.client.taxId}` : '',
-            ]),
-          )}
-        </View>
-
-        <View>
-          <View
-            fixed
-            style={{
-              flexDirection: 'row',
-              paddingVertical: u(6),
-              borderBottomWidth: 1,
-              borderColor: RULE,
-              ...label,
-            }}
-          >
-            <T style={{ flex: 1 }}>DESCRIPTION</T>
-            <T style={{ width: u(44), textAlign: 'right' }}>QTY</T>
-            <T style={{ width: u(84), textAlign: 'right' }}>RATE</T>
-            <T style={{ width: u(84), textAlign: 'right' }}>AMOUNT</T>
-          </View>
-          {view.lines.map((line, i) => (
-            <View
-              key={line.id}
-              wrap={false}
-              style={{
-                flexDirection: 'row',
-                paddingVertical: u(9),
-                borderBottomWidth: i < view.lines.length - 1 ? 1 : 0,
-                borderColor: RULE,
-              }}
-            >
-              <View style={{ flex: 1, paddingRight: u(12) }}>
-                <T>{line.title || 'Untitled item'}</T>
-                {line.description && (
-                  <T style={{ fontSize: u(8.5), color: MUTED }}>{line.description}</T>
-                )}
-              </View>
-              <T style={{ ...num, width: u(44), textAlign: 'right', color: MUTED }}>{line.qty}</T>
-              <T style={{ ...num, width: u(84), textAlign: 'right', color: MUTED }}>{line.rate}</T>
-              <T style={{ ...num, width: u(84), textAlign: 'right', fontWeight: 500 }}>
-                {line.amount}
-              </T>
-            </View>
-          ))}
-        </View>
-
-        <View wrap={false} style={{ alignSelf: 'flex-end', width: u(180), gap: u(6) }}>
-          <TotalsRows ctx={ctx} labelStyle={{ color: MUTED }} valueStyle={num} />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              borderTopWidth: 1,
-              borderColor: INK,
-              paddingTop: u(8),
-            }}
-          >
-            <T style={{ fontSize: u(11), fontWeight: 600 }}>Total due</T>
-            <T style={{ ...num, fontSize: u(13), fontWeight: 600 }}>{view.total}</T>
-          </View>
-        </View>
-
-        <View style={{ flexGrow: 1 }} />
-
-        {(view.notes || view.paymentDetails || view.show.signature) && (
-          <View
-            wrap={false}
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: u(16),
-              paddingTop: u(14),
-              borderTopWidth: 1,
-              borderColor: RULE,
-            }}
-          >
-            {[
-              ['NOTES', view.notes],
-              ['PAYMENT', view.paymentDetails ?? ''],
-            ].map(([l, v]) => (
-              <View key={l} style={{ width: '47%', gap: u(4) }}>
-                {v ? (
-                  <>
-                    <T style={label}>{l}</T>
-                    <T style={{ fontSize: u(9), color: MUTED }}>{v}</T>
-                  </>
-                ) : null}
-              </View>
-            ))}
-            {view.show.signature && (
-              <View style={{ width: '100%', alignItems: 'flex-end', marginTop: u(8) }}>
-                <Signature ctx={ctx} color={MUTED} ink={INK} />
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-    </Page>
+  const c = view.client
+  const pad: Style = { paddingHorizontal: u(24), paddingVertical: u(11) }
+  const cols: Style[] = [
+    { width: '50%', paddingRight: u(12) },
+    { flex: 1 },
+    { flex: 1 },
+    { flex: 1, textAlign: 'right' },
+  ]
+  const row2 = (left: ReactNode, right: ReactNode) => (
+    <View wrap={false} style={{ flexDirection: 'row', ...pad, ...rule }}>
+      <View style={{ width: '50%', paddingRight: u(12) }}>{left}</View>
+      <View style={{ width: '50%', paddingRight: u(12) }}>{right}</View>
+    </View>
   )
-}
-
-/* ---------- Classic ---------- */
-
-function Classic(ctx: Ctx) {
-  const { view, u, text } = ctx
-  const INK = '#1F1B16'
-  const MUTED = '#7A7268'
-  const RULE = '#E4DED3'
-  const PAPER = '#FFFDF8'
-  const b = view.business
-  const italic: Style = { fontStyle: 'italic', color: MUTED }
-  const letterhead = pick<string>([
-    b.address.replace(/\n+/g, ', '),
-    b.email,
-    b.phone,
-    b.website,
-  ]).join(' · ')
-  const clientLine = pick<string>([
-    view.client?.address.replace(/\n+/g, ', '),
-    view.client?.email,
-    view.show.taxId && view.client?.taxId ? `Tax ID ${view.client.taxId}` : '',
-  ]).join(' · ')
-  const meta = pick<[string, string]>([
-    ['No.', view.number],
-    ['Issued', view.issued],
-    ['Due', view.due],
-    view.reference ? ['Ref.', view.reference] : null,
-  ])
+  const lines = (ls: string[]) => ls.map((l) => <T key={l}>{l}</T>)
+  const split = (left: (string | false | null | undefined)[], right: typeof left) => {
+    const l = pick<string>(left)
+    const r = pick<string>(right)
+    return l.length || r.length ? row2(lines(l), lines(r)) : null
+  }
 
   return (
     <Page
       size={PAPER_PT[view.paper].size}
-      style={{
-        fontFamily: text,
-        color: INK,
-        fontSize: u(11),
-        lineHeight: 1.3,
-        backgroundColor: PAPER,
-        paddingVertical: u(32),
-        paddingHorizontal: u(36),
-      }}
+      style={{ fontFamily: body, color: INK, fontSize: u(10), lineHeight: 1.3 }}
     >
-      <View style={{ flexGrow: 1, gap: u(20) }}>
-        <View style={{ alignItems: 'center', gap: u(6) }}>
-          {view.show.logo && b.logoUrl && (
-            <Image
-              src={b.logoUrl}
-              style={{ height: u(28), objectFit: 'contain', marginBottom: u(4) }}
-            />
-          )}
+      <View style={{ flexGrow: 1 }}>
+        <View style={{ height: u(97), paddingHorizontal: u(24), paddingTop: u(16), ...rule }}>
           <T
             style={{
-              fontSize: u(15),
-              fontWeight: 600,
-              letterSpacing: u(3),
-              textTransform: 'uppercase',
+              fontFamily: heading,
+              fontSize: u(30),
+              letterSpacing: u(-0.8),
+              lineHeight: 1,
             }}
           >
             {b.name || 'Your business'}
           </T>
-          {letterhead && (
-            <T style={{ ...italic, fontSize: u(10), textAlign: 'center' }}>{letterhead}</T>
-          )}
-          {view.show.taxId && b.taxId && (
-            <T style={{ fontSize: u(9.5), color: MUTED }}>Tax ID {b.taxId}</T>
-          )}
         </View>
 
-        <View style={{ gap: u(2) }}>
-          <View style={{ height: u(2), backgroundColor: view.accent }} />
-          <View style={{ height: u(1), backgroundColor: view.accent }} />
-        </View>
+        {split(
+          [
+            view.issued,
+            view.reference && `Reference ${view.reference}`,
+            c?.name || '—',
+            c?.contact,
+            c?.email,
+            view.show.taxId && c?.taxId && `Tax ID ${c.taxId}`,
+          ],
+          [c?.address],
+        )}
 
-        <View
-          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}
-        >
-          <T
-            style={{ fontSize: u(34), fontStyle: 'italic', letterSpacing: u(-0.5), lineHeight: 1 }}
-          >
-            Invoice
-          </T>
-          <View style={{ gap: u(3) }}>
-            {meta.map(([l, v]) => (
-              <View key={l} style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: u(8) }}>
-                <T style={{ ...italic, fontSize: u(10) }}>{l}</T>
-                <T style={{ fontSize: u(10.5) }}>{v}</T>
-              </View>
+        <View style={{ flexGrow: 1, backgroundColor: '#F1F2F2', ...rule }}>
+          <View fixed style={{ flexDirection: 'row', backgroundColor: 'white', ...pad, ...rule }}>
+            {['Service', 'Unit cost', 'Quantity', 'Subtotal'].map((h, i) => (
+              <T key={h} style={cols[i]}>
+                {h}
+              </T>
             ))}
           </View>
-        </View>
-
-        <View style={{ gap: u(3) }}>
-          <T style={{ ...italic, fontSize: u(10) }}>Billed to</T>
-          <T style={{ fontSize: u(13), fontWeight: 600 }}>{view.client?.name ?? '—'}</T>
-          {clientLine && <T style={{ fontSize: u(10.5), color: MUTED }}>{clientLine}</T>}
-        </View>
-
-        <View style={{ borderTopWidth: 1, borderColor: INK }}>
-          <View
-            fixed
-            style={{
-              flexDirection: 'row',
-              paddingVertical: u(7),
-              borderBottomWidth: 1,
-              borderColor: INK,
-              ...italic,
-              fontSize: u(9.5),
-            }}
-          >
-            <T style={{ flex: 1 }}>Description</T>
-            <T style={{ width: u(40), textAlign: 'right' }}>Qty</T>
-            <T style={{ width: u(84), textAlign: 'right' }}>Rate</T>
-            <T style={{ width: u(84), textAlign: 'right' }}>Amount</T>
+          {/* Rows carry their own top space so a row starting a new page clears the header. */}
+          <View style={{ paddingHorizontal: u(24), paddingBottom: u(12) }}>
+            {view.lines.map((l, i) => {
+              const [item, rate, qty, amount] = cols
+              return (
+                <View
+                  key={l.id}
+                  wrap={false}
+                  style={{ flexDirection: 'row', paddingTop: u(i === 0 ? 12 : 9) }}
+                >
+                  <View style={item}>
+                    <T>{l.title || 'Untitled item'}</T>
+                    {l.description && <T style={{ color: MUTED }}>{l.description}</T>}
+                  </View>
+                  <T style={rate}>{l.rate}</T>
+                  <T style={qty}>{l.qty}</T>
+                  <T style={amount}>{l.amount}</T>
+                </View>
+              )
+            })}
           </View>
-          {view.lines.map((line, i) => (
-            <View
-              key={line.id}
-              wrap={false}
-              style={{
-                flexDirection: 'row',
-                paddingVertical: u(9),
-                borderBottomWidth: i < view.lines.length - 1 ? u(0.75) : 0,
-                borderColor: RULE,
-              }}
-            >
-              <View style={{ flex: 1, paddingRight: u(12) }}>
-                <T>{line.title || 'Untitled item'}</T>
-                {line.description && (
-                  <T style={{ ...italic, fontSize: u(9.5) }}>{line.description}</T>
-                )}
-              </View>
-              <T style={{ width: u(40), textAlign: 'right' }}>{line.qty}</T>
-              <T style={{ width: u(84), textAlign: 'right' }}>{line.rate}</T>
-              <T style={{ width: u(84), textAlign: 'right' }}>{line.amount}</T>
-            </View>
-          ))}
         </View>
 
         <View
           wrap={false}
-          style={{ alignSelf: 'flex-end', width: u(190), gap: u(5), fontSize: u(10.5) }}
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            paddingHorizontal: u(24),
+            paddingTop: u(11),
+            paddingBottom: u(12),
+            ...rule,
+          }}
         >
-          <TotalsRows ctx={ctx} labelStyle={italic} valueStyle={{}} />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingVertical: u(8),
-              borderTopWidth: u(1.5),
-              borderBottomWidth: u(1.5),
-              borderColor: view.accent,
-            }}
-          >
-            <T style={{ fontSize: u(11.5), fontWeight: 600 }}>Amount due</T>
-            <T style={{ fontSize: u(15), fontWeight: 600, color: view.accent }}>{view.total}</T>
+          <View style={{ width: '50%' }}>
+            <TotalsRows ctx={ctx} labelStyle={{}} valueStyle={{}} />
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                paddingTop: u(4),
+                color: view.accent,
+              }}
+            >
+              <T>Total</T>
+              <T>{view.total}</T>
+            </View>
           </View>
         </View>
 
-        <View style={{ flexGrow: 1 }} />
+        {row2(
+          [
+            ['Payment terms', view.terms],
+            ['Invoice issued', view.issued],
+          ]
+            .map(([k, v]) => (
+              <View key={k} style={{ flexDirection: 'row' }}>
+                <T style={{ width: u(118) }}>{k}</T>
+                <T>{v}</T>
+              </View>
+            ))
+            .concat(
+              <View key="due" style={{ flexDirection: 'row' }}>
+                <T style={{ width: u(118) }}>Due date</T>
+                <T>
+                  {view.due}
+                  <T style={{ color: MUTED }}> · {view.dueNote}</T>
+                </T>
+              </View>,
+            ),
+          <>
+            {view.notes && <T>{view.notes}</T>}
+            {view.show.signature && (
+              <T
+                style={{
+                  width: u(175),
+                  marginTop: u(28),
+                  paddingTop: u(6),
+                  borderTopWidth: u(0.8),
+                  borderColor: INK,
+                  color: MUTED,
+                }}
+              >
+                Authorized signature
+              </T>
+            )}
+          </>,
+        )}
 
-        <View wrap={false} style={{ alignItems: 'center', gap: u(4), paddingTop: u(8) }}>
-          <T style={{ fontSize: u(12), fontStyle: 'italic', textAlign: 'center' }}>
-            {view.notes || 'Thank you for your business.'}
-          </T>
-          {view.paymentDetails && (
-            <T style={{ fontSize: u(9.5), color: MUTED, textAlign: 'center' }}>
-              {view.paymentDetails}
-            </T>
-          )}
-          {view.show.signature && (
-            <View style={{ marginTop: u(20) }}>
-              <Signature ctx={ctx} color={MUTED} ink={INK} italic />
-            </View>
-          )}
+        {split([b.address], [b.email, b.phone, b.website])}
+        {split([view.show.taxId && b.taxId && `Tax ID ${b.taxId}`], [view.paymentDetails])}
+
+        <View
+          wrap={false}
+          style={{
+            height: u(129),
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            gap: u(24),
+            paddingHorizontal: u(24),
+            paddingBottom: u(13),
+            fontFamily: heading,
+            fontSize: u(35),
+            letterSpacing: u(-0.8),
+            lineHeight: 1,
+          }}
+        >
+          <T>INVOICE</T>
+          <T>{view.number}</T>
         </View>
       </View>
     </Page>
   )
 }
 
-/* ---------- Studio ---------- */
+/* ---------- Swiss Ledger ---------- */
 
-function Studio(ctx: Ctx) {
-  const { view, u, text, figures } = ctx
-  const INK = '#16161A'
-  const MUTED = '#74747C'
-  const RAIL = '#F6F5F2'
-  const RULE = '#EBEAE6'
+function SwissLedger(ctx: Ctx) {
+  const { view, u, heading, body } = ctx
+  const INK = '#111111'
+  const MUTED = '#8A8A8A'
+  const RULE = '#D9D9D9'
   const b = view.business
-  const label: Style = { fontFamily: figures, fontSize: u(8), letterSpacing: u(0.8), color: MUTED }
-  const mono: Style = { fontFamily: figures }
+  const c = view.client
+  const rule: Style = { borderTopWidth: u(0.5), borderColor: RULE }
+  const half: Style = { width: '50%', paddingRight: u(12) }
+  const cells: Style[] = [
+    half,
+    { width: u(54) },
+    { flex: 1, textAlign: 'right' },
+    { flex: 1, textAlign: 'right' },
+  ]
+  const spacer = <View style={{ flexGrow: 1, minHeight: u(35) }} />
 
-  const block = (title: string, strong: string, lines: string[] = [], isMono = false) => (
-    <View style={{ gap: u(3) }}>
+  return (
+    <Page
+      size={PAPER_PT[view.paper].size}
+      style={{
+        fontFamily: body,
+        color: INK,
+        fontSize: u(10),
+        lineHeight: 1.55,
+        paddingTop: u(38),
+        paddingHorizontal: u(38),
+        paddingBottom: u(35),
+      }}
+    >
+      <View style={{ flexGrow: 1 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: u(24) }}>
+          <View
+            style={{
+              flex: 1,
+              fontFamily: heading,
+              fontSize: u(19),
+              lineHeight: 1.2,
+              letterSpacing: u(-0.15),
+            }}
+          >
+            <T>{b.name || 'Your business'}</T>
+            {view.show.taxId && b.taxId && <T>Tax ID: {b.taxId}</T>}
+            {b.address && <T>{b.address}</T>}
+          </View>
+          <LogoMark ctx={ctx} />
+        </View>
+
+        <View style={{ flexDirection: 'row', marginTop: u(35) }}>
+          <View style={{ ...half, gap: u(8) }}>
+            <T style={{ fontWeight: 500 }}>Invoice</T>
+            <View>
+              <T>Invoice no.: {view.number}</T>
+              {view.reference && <T>Reference: {view.reference}</T>}
+              <T>Invoice date: {view.issued}</T>
+              <T>
+                Due date: {view.due}
+                <T style={{ color: MUTED }}> · {view.dueNote}</T>
+              </T>
+              {view.paymentDetails && <T>{view.paymentDetails}</T>}
+            </View>
+          </View>
+          <View style={{ ...half, gap: u(8) }}>
+            <T style={{ fontWeight: 500 }}>Recipient</T>
+            <View>
+              {pick<string>([
+                c?.name || '—',
+                c?.contact,
+                c?.email,
+                view.show.taxId && c?.taxId ? `Tax ID: ${c.taxId}` : '',
+                c?.address,
+              ]).map((line) => (
+                <T key={line}>{line}</T>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {spacer}
+
+        <View style={{ ...rule, paddingTop: u(16), paddingBottom: u(16) }}>
+          <View fixed style={{ flexDirection: 'row', fontWeight: 500, paddingBottom: u(9) }}>
+            {['Item', 'Qty', 'Rate', 'Amount'].map((h, i) => (
+              <T key={h} style={cells[i]}>
+                {h}
+              </T>
+            ))}
+          </View>
+          {view.lines.map((line) => {
+            const [item, qty, rate, amount] = cells
+            return (
+              <View
+                key={line.id}
+                wrap={false}
+                style={{ flexDirection: 'row', paddingBottom: u(4) }}
+              >
+                <View style={item}>
+                  <T>{line.title || 'Untitled item'}</T>
+                  {line.description && <T style={{ color: MUTED }}>{line.description}</T>}
+                </View>
+                <T style={qty}>{line.qty}</T>
+                <T style={rate}>{line.rate}</T>
+                <T style={amount}>{line.amount}</T>
+              </View>
+            )
+          })}
+        </View>
+
+        <View wrap={false} style={{ ...rule, paddingTop: u(16), gap: u(4) }}>
+          <TotalsRows ctx={ctx} labelStyle={{}} valueStyle={{}} />
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              fontWeight: 600,
+              color: view.accent,
+            }}
+          >
+            <T>Total</T>
+            <T>{view.total}</T>
+          </View>
+        </View>
+
+        {spacer}
+
+        <View wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
+          <View style={{ ...half, color: MUTED }}>
+            {pick<string>([b.email, b.phone, b.website]).map((line) => (
+              <T key={line}>{line}</T>
+            ))}
+          </View>
+          <View style={half}>
+            {view.notes && <T>{view.notes}</T>}
+            {view.show.signature && (
+              <T
+                style={{
+                  width: u(175),
+                  marginTop: u(28),
+                  paddingTop: u(6),
+                  borderTopWidth: u(0.5),
+                  borderColor: INK,
+                  color: MUTED,
+                }}
+              >
+                Authorized signature
+              </T>
+            )}
+          </View>
+        </View>
+      </View>
+    </Page>
+  )
+}
+
+/* ---------- Serif Ledger ---------- */
+
+function SerifLedger(ctx: Ctx) {
+  const { view, u, heading, body } = ctx
+  const INK = '#111111'
+  const MUTED = '#6E6E6E'
+  const b = view.business
+  const c = view.client
+  const line = u(0.8)
+  const label: Style = { fontSize: u(7.5), fontStyle: 'italic' }
+  const cell: Style = { paddingTop: u(11), paddingHorizontal: u(11), paddingBottom: u(13) }
+  const cells: Style[] = [
+    { width: '50%', paddingRight: u(11) },
+    { width: u(65), paddingLeft: u(11) },
+    { flex: 1, textAlign: 'right' },
+    { flex: 1, textAlign: 'right' },
+  ]
+  const spacer = <View style={{ flexGrow: 1, minHeight: u(30) }} />
+  const party = (title: string, lines: string[], style: Style = {}) => (
+    <View style={{ width: '50%', gap: u(5), ...cell, ...style }}>
       <T style={label}>{title}</T>
-      <T style={{ fontSize: u(10), fontWeight: 600, ...(isMono ? mono : {}) }}>{strong}</T>
-      {lines.map((line) => (
-        <T key={line} style={{ fontSize: u(9), color: MUTED }}>
-          {line}
-        </T>
-      ))}
+      <View>
+        {lines.map((l) => (
+          <T key={l}>{l}</T>
+        ))}
+      </View>
     </View>
   )
 
@@ -764,163 +481,380 @@ function Studio(ctx: Ctx) {
     <Page
       size={PAPER_PT[view.paper].size}
       style={{
-        fontFamily: text,
+        fontFamily: body,
         color: INK,
-        fontSize: u(9),
-        lineHeight: 1.3,
-        flexDirection: 'row',
+        fontSize: u(10),
+        lineHeight: 1.55,
+        paddingVertical: u(35),
+        paddingHorizontal: u(38),
       }}
     >
-      {/* The rail is fixed so it continues down every page. */}
-      <View
-        fixed
-        style={{
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          width: u(136),
-          backgroundColor: RAIL,
-        }}
-      />
-      <View style={{ width: u(136), paddingVertical: u(32), paddingHorizontal: u(20), gap: u(22) }}>
-        {view.show.logo && b.logoUrl ? (
-          <Image
-            src={b.logoUrl}
-            style={{
-              width: u(28),
-              height: u(28),
-              borderRadius: u(14),
-              objectFit: 'contain',
-              backgroundColor: 'white',
-            }}
-          />
-        ) : (
-          <View
-            style={{
-              width: u(28),
-              height: u(28),
-              borderRadius: u(14),
-              backgroundColor: view.accent,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <T style={{ color: 'white', fontSize: u(11), fontWeight: 700 }}>
-              {initials(b.name || '?').toLowerCase()}
-            </T>
-          </View>
-        )}
-        {block(
-          'FROM',
-          b.name || 'Your business',
-          pick<string>([
-            b.email,
-            b.address,
-            b.phone,
-            view.show.taxId && b.taxId ? `Tax ID ${b.taxId}` : '',
-          ]),
-        )}
-        {block(
-          'BILL TO',
-          view.client?.name ?? '—',
-          pick<string>([
-            view.client?.email,
-            view.client?.address,
-            view.show.taxId && view.client?.taxId ? `Tax ID ${view.client.taxId}` : '',
-          ]),
-        )}
-        {block('ISSUED', view.issued, [], true)}
-        {block('DUE', view.due, [], true)}
-        {view.reference ? block('REF.', view.reference, [], true) : null}
-        {view.paymentDetails && (
-          <View style={{ gap: u(3) }}>
-            <T style={label}>PAYMENT</T>
-            <T style={{ fontSize: u(9), color: MUTED }}>{view.paymentDetails}</T>
-          </View>
-        )}
-      </View>
-
-      <View
-        style={{
-          flex: 1,
-          paddingTop: u(32),
-          paddingHorizontal: u(24),
-          paddingBottom: u(28),
-          gap: u(26),
-        }}
-      >
-        <View style={{ gap: u(6) }}>
-          <T style={{ ...mono, fontSize: u(9), letterSpacing: u(0.5), color: MUTED }}>
-            {view.number}
-          </T>
-          <T style={{ fontSize: u(30), fontWeight: 600, letterSpacing: u(-1.2), lineHeight: 1 }}>
-            Invoice
-          </T>
-        </View>
-
+      <View style={{ flexGrow: 1 }}>
         <View
-          style={{ borderLeftWidth: u(2), borderColor: view.accent, paddingLeft: u(12), gap: u(4) }}
-        >
-          <T style={label}>{view.status === 'paid' ? 'PAID' : 'TOTAL DUE'}</T>
-          <T
-            style={{
-              fontSize: u(22),
-              fontWeight: 600,
-              letterSpacing: u(-0.6),
-              color: view.accent,
-              lineHeight: 1,
-            }}
-          >
-            {view.total}
-          </T>
-        </View>
-
-        <View style={{ gap: u(14) }}>
-          {view.lines.map((line) => (
-            <View
-              key={line.id}
-              wrap={false}
-              style={{ flexDirection: 'row', justifyContent: 'space-between', gap: u(8) }}
-            >
-              <View style={{ flex: 1, gap: u(2) }}>
-                <T style={{ fontSize: u(10.5), fontWeight: 500 }}>
-                  {line.title || 'Untitled item'}
-                </T>
-                {line.description && (
-                  <T style={{ fontSize: u(8.5), color: MUTED }}>{line.description}</T>
-                )}
-                <T style={{ ...mono, fontSize: u(8.5), color: MUTED }}>
-                  {line.qty} × {line.rate}
-                </T>
-              </View>
-              <T style={{ ...mono, fontSize: u(10.5) }}>{line.amount}</T>
-            </View>
-          ))}
-        </View>
-
-        <View
-          wrap={false}
           style={{
-            borderTopWidth: 1,
-            borderColor: RULE,
-            paddingTop: u(14),
-            gap: u(6),
-            fontSize: u(9.5),
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: u(24),
           }}
         >
-          <TotalsRows ctx={ctx} labelStyle={{ color: MUTED }} valueStyle={mono} />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: u(6) }}>
-            <T style={{ fontSize: u(11), fontWeight: 600 }}>Total</T>
-            <T style={{ ...mono, fontSize: u(11), fontWeight: 500 }}>
-              {view.totalAmount} {view.currency}
+          <T
+            style={{ fontFamily: heading, fontSize: u(46), lineHeight: 1, letterSpacing: u(-0.67) }}
+          >
+            Invoice
+          </T>
+          <LogoMark ctx={ctx} />
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: u(12), marginTop: u(30) }}>
+          <View style={{ flex: 1 }}>
+            <T>Invoice no.: {view.number}</T>
+            {view.reference && <T>Reference: {view.reference}</T>}
+            {view.paymentDetails && <T>{view.paymentDetails}</T>}
+          </View>
+          <View style={{ flex: 1 }}>
+            <T>Invoice date: {view.issued}</T>
+            <T>
+              Due date: {view.due}
+              <T style={{ color: MUTED }}> · {view.dueNote}</T>
             </T>
           </View>
         </View>
 
-        <View style={{ flexGrow: 1 }} />
-        {view.notes && <T style={{ fontSize: u(9), color: MUTED }}>{view.notes}</T>}
-        {view.show.signature && <Signature ctx={ctx} color={MUTED} ink={INK} />}
+        {spacer}
+
+        <View style={{ borderWidth: line, borderColor: MUTED }}>
+          <View style={{ flexDirection: 'row' }}>
+            {party(
+              'Seller',
+              pick<string>([
+                b.name || 'Your business',
+                view.show.taxId && b.taxId ? `Tax ID: ${b.taxId}` : '',
+                b.address,
+              ]),
+              { borderRightWidth: line, borderColor: MUTED },
+            )}
+            {party(
+              'Recipient',
+              pick<string>([
+                c?.name || '—',
+                c?.contact,
+                c?.email,
+                view.show.taxId && c?.taxId ? `Tax ID: ${c.taxId}` : '',
+                c?.address,
+              ]),
+            )}
+          </View>
+          <View style={{ ...cell, borderTopWidth: line, borderColor: MUTED }}>
+            <View fixed style={{ flexDirection: 'row', paddingBottom: u(4), ...label }}>
+              {['Item', 'Qty', 'Rate', 'Amount'].map((h, i) => (
+                <T key={h} style={cells[i]}>
+                  {h}
+                </T>
+              ))}
+            </View>
+            {view.lines.map((l) => {
+              const [item, qty, rate, amount] = cells
+              return (
+                <View key={l.id} wrap={false} style={{ flexDirection: 'row', paddingBottom: u(3) }}>
+                  <View style={item}>
+                    <T>{l.title || 'Untitled item'}</T>
+                    {l.description && <T style={{ color: MUTED }}>{l.description}</T>}
+                  </View>
+                  <T style={qty}>{l.qty}</T>
+                  <T style={rate}>{l.rate}</T>
+                  <T style={amount}>{l.amount}</T>
+                </View>
+              )
+            })}
+          </View>
+        </View>
+
+        <View wrap={false} style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+          <View
+            style={{
+              width: '50%',
+              gap: u(3),
+              ...cell,
+              borderLeftWidth: line,
+              borderRightWidth: line,
+              borderBottomWidth: line,
+              borderColor: MUTED,
+            }}
+          >
+            <TotalsRows ctx={ctx} labelStyle={{}} valueStyle={{}} />
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                fontSize: u(11.5),
+                fontWeight: 700,
+                color: view.accent,
+              }}
+            >
+              <T>Total</T>
+              <T>{view.total}</T>
+            </View>
+          </View>
+        </View>
+
+        {spacer}
+
+        <View wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-end', gap: u(12) }}>
+          <View style={{ flex: 1 }}>
+            {view.notes && <T>{view.notes}</T>}
+            {view.show.signature && (
+              <T
+                style={{
+                  width: u(175),
+                  marginTop: u(28),
+                  paddingTop: u(6),
+                  borderTopWidth: line,
+                  borderColor: INK,
+                  color: MUTED,
+                }}
+              >
+                Authorized signature
+              </T>
+            )}
+          </View>
+          <View
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              gap: u(6),
+            }}
+          >
+            <View>
+              {pick<string>([b.email, b.phone]).map((l) => (
+                <T key={l}>{l}</T>
+              ))}
+            </View>
+            {b.website && <T>{b.website}</T>}
+          </View>
+        </View>
+      </View>
+    </Page>
+  )
+}
+
+/* ---------- Editorial Mono ---------- */
+
+function EditorialMono(ctx: Ctx) {
+  const { view, u, heading, body } = ctx
+  const INK = '#151515'
+  const SOFT = '#55534E'
+  const MUTED = '#8C8A84'
+  const FAINT = '#ABA9A2'
+  const RULE = '#3A3A3A'
+  const b = view.business
+  const c = view.client
+  const title = fitInvoiceTitle(fontIds('studio', view.fonts).heading, 135, 512)
+  const caps: Style = { fontSize: u(9), letterSpacing: u(1.6), textTransform: 'uppercase' }
+  const key: Style = { fontSize: u(9.5), letterSpacing: u(0.67), textTransform: 'uppercase' }
+  const cols: Style[] = [
+    { flex: 1, paddingRight: u(12) },
+    { width: u(81), textAlign: 'right' },
+    { width: u(81), textAlign: 'right' },
+    { width: u(81), textAlign: 'right' },
+  ]
+  const spacer = <View style={{ flexGrow: 1, minHeight: u(16) }} />
+  const party = (label: string, name: string, lines: string[]) => (
+    <View style={{ gap: u(3) }}>
+      <T style={key}>{label}</T>
+      <View>
+        <T style={{ fontSize: u(11), color: SOFT }}>{name}</T>
+        {lines.map((l) => (
+          <T key={l} style={{ fontSize: u(9), color: MUTED }}>
+            {l}
+          </T>
+        ))}
+      </View>
+    </View>
+  )
+  const block = (label: string, children: ReactNode) => (
+    <View style={{ gap: u(3), paddingRight: u(19) }}>
+      <T style={key}>{label}</T>
+      {children}
+    </View>
+  )
+
+  return (
+    <Page
+      size={PAPER_PT[view.paper].size}
+      style={{
+        fontFamily: body,
+        color: INK,
+        backgroundColor: '#F5F4EF',
+        fontSize: u(9.5),
+        lineHeight: 1.5,
+        paddingTop: u(22),
+        paddingHorizontal: u(24),
+        paddingBottom: u(19),
+      }}
+    >
+      <View style={{ flexGrow: 1 }}>
+        <T
+          style={{
+            fontFamily: heading,
+            fontSize: u(title),
+            letterSpacing: u(-title * 0.016),
+            lineHeight: 0.9,
+          }}
+        >
+          INVOICE
+        </T>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            gap: u(24),
+            marginTop: u(32),
+          }}
+        >
+          <View style={{ flexShrink: 1, gap: u(16) }}>
+            {party(
+              'From',
+              b.name || 'Your business',
+              pick<string>([
+                b.email,
+                [b.phone, b.website].filter(Boolean).join(' · '),
+                b.address,
+                view.show.taxId && b.taxId ? `Tax ID ${b.taxId}` : '',
+              ]),
+            )}
+            {party(
+              'To',
+              c?.name || '—',
+              pick<string>([
+                c?.contact,
+                c?.email,
+                c?.address,
+                view.show.taxId && c?.taxId ? `Tax ID ${c.taxId}` : '',
+              ]),
+            )}
+          </View>
+          <View style={{ alignItems: 'flex-end', gap: u(16) }}>
+            <View style={{ alignItems: 'flex-end', gap: u(3) }}>
+              <View style={{ flexDirection: 'row', gap: u(7), paddingRight: u(19) }}>
+                <T style={key}>Issued</T>
+                <Svg width={u(46)} height={u(14)} viewBox="0 0 34 11" style={{ marginTop: u(6) }}>
+                  <Path d="M0 4h33.5v7" stroke={INK} strokeWidth={0.6} fill="none" />
+                </Svg>
+              </View>
+              <T
+                style={{
+                  fontSize: u(16),
+                  lineHeight: 1.1,
+                  paddingVertical: u(7),
+                  paddingHorizontal: u(22),
+                  borderWidth: u(0.95),
+                  borderColor: INK,
+                  borderRadius: u(40),
+                }}
+              >
+                {view.number} / {view.issued}
+              </T>
+            </View>
+            {view.reference && block('Ref', <T style={{ fontSize: u(11) }}>{view.reference}</T>)}
+            {block(
+              'Due',
+              <View>
+                <T style={{ fontSize: u(20), lineHeight: 1.1 }}>{view.due}</T>
+                <T style={{ fontSize: u(9), color: MUTED }}>{view.dueNote}</T>
+              </View>,
+            )}
+          </View>
+        </View>
+
+        {spacer}
+
+        <View>
+          <View
+            fixed
+            style={{
+              flexDirection: 'row',
+              paddingBottom: u(11),
+              borderBottomWidth: u(0.8),
+              borderColor: RULE,
+              ...caps,
+            }}
+          >
+            {['Services', 'Rate', 'Qty', 'Total'].map((h, i) => (
+              <T key={h} style={cols[i]}>
+                {h}
+              </T>
+            ))}
+          </View>
+          {view.lines.map((l, i) => {
+            const [item, rate, qty, amount] = cols
+            return (
+              <View
+                key={l.id}
+                wrap={false}
+                style={{ flexDirection: 'row', paddingTop: u(i === 0 ? 15 : 13) }}
+              >
+                <View style={item}>
+                  <T>{l.title || 'Untitled item'}</T>
+                  {l.description && (
+                    <T style={{ fontSize: u(9), color: MUTED, marginTop: u(1) }}>{l.description}</T>
+                  )}
+                </View>
+                <T style={rate}>{l.rate}</T>
+                <T style={qty}>{l.qty}</T>
+                <T style={amount}>{l.amount}</T>
+              </View>
+            )
+          })}
+        </View>
+
+        {spacer}
+
+        <View wrap={false} style={{ gap: u(4) }}>
+          <TotalsRows ctx={ctx} labelStyle={caps} valueStyle={caps} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: u(16) }}>
+            <T style={{ fontFamily: heading, fontSize: u(31), lineHeight: 1 }}>Total</T>
+            <View style={{ flex: 1, borderTopWidth: u(0.8), borderColor: RULE }} />
+            <T style={{ fontSize: u(25.5), lineHeight: 1.1, color: view.accent }}>{view.total}</T>
+          </View>
+        </View>
+
+        {(view.notes || view.paymentDetails || view.show.signature) && (
+          <View
+            wrap={false}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              gap: u(24),
+              marginTop: u(20),
+              fontSize: u(9),
+              color: FAINT,
+            }}
+          >
+            <View style={{ flexShrink: 1, gap: u(6) }}>
+              {view.notes && <T>{view.notes}</T>}
+              {view.paymentDetails && <T>{view.paymentDetails}</T>}
+            </View>
+            {view.show.signature && (
+              <T
+                style={{
+                  width: u(175),
+                  flexShrink: 0,
+                  paddingTop: u(6),
+                  borderTopWidth: u(0.8),
+                  borderColor: INK,
+                }}
+              >
+                Authorized signature
+              </T>
+            )}
+          </View>
+        )}
       </View>
     </Page>
   )
