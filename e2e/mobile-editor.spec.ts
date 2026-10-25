@@ -74,6 +74,8 @@ test('delete asks first and offers undo', async ({ page }) => {
   await expect(page).toHaveURL('/')
   await expect(page.getByRole('status')).toContainText('INV-0004 deleted')
   await page.getByRole('status').getByRole('button', { name: 'Undo' }).click()
+  // Wait for the restore to be saved before opening it, or the editor finds nothing.
+  await expect(page.getByRole('link', { name: /INV-0004/ })).toBeVisible()
   await page.goto('/invoices/inv-4')
   await expect(page.getByRole('region', { name: 'Status' })).toBeVisible()
 })
