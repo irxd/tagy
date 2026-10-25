@@ -8,6 +8,16 @@ test('previews the sample invoice before any invoice exists', async ({ page }) =
   )
 })
 
+test('previews the sample rather than a blank draft', async ({ page }) => {
+  await page.goto('/invoices/new')
+  await page.waitForURL(/\/invoices\/[\w-]{36}/)
+  await page.goto('/templates')
+  const preview = page.getByRole('region', { name: 'Preview' })
+  await expect(preview.getByRole('article', { name: 'Invoice INV-0042' })).toContainText(
+    'Brand identity design',
+  )
+})
+
 test('set as default makes new invoices use the template', async ({ page }) => {
   await page.goto('/templates')
   await page.getByRole('radio', { name: 'Editorial Mono' }).click()

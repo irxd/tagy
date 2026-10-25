@@ -143,10 +143,15 @@ function Templates({ settings }: { settings: AppSettings }) {
   )
 }
 
-/** The most recently edited invoice, or the sample before any exist. */
+/**
+ * The most recently edited invoice that has a client and a named item, or
+ * the sample when none does — a blank draft makes a poor preview.
+ */
 function usePreviewView(settings: AppSettings): InvoiceView {
   const invoices = useInvoices()
-  const latest = invoices?.toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
+  const latest = invoices
+    ?.filter((inv) => inv.clientId && inv.items.some((item) => item.title.trim()))
+    .toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
   const client = useClient(latest?.clientId ?? undefined)
   const logoUrl = useBlobUrl(settings.business.logoBlobId)
   const source = latest ? { invoice: latest, client } : sampleInvoice(settings)
