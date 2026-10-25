@@ -19,7 +19,7 @@ export const TEMPLATE_LABELS: Record<TemplateId, string> = {
   minimal: 'Swiss Ledger',
   classic: 'Serif Ledger',
   bold: 'Bold',
-  studio: 'Studio',
+  studio: 'Editorial Mono',
 }
 
 export const templateOptions: SelectOption[] = (Object.keys(TEMPLATE_LABELS) as TemplateId[]).map(

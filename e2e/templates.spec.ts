@@ -10,15 +10,17 @@ test('previews the sample invoice before any invoice exists', async ({ page }) =
 
 test('set as default makes new invoices use the template', async ({ page }) => {
   await page.goto('/templates')
-  await page.getByRole('radio', { name: 'Studio' }).click()
-  await page.getByRole('button', { name: 'Set Studio as default' }).click()
-  await expect(page.getByRole('status')).toContainText('Studio is now the default')
-  await expect(page.getByRole('button', { name: 'Studio is the default' })).toBeDisabled()
+  await page.getByRole('radio', { name: 'Editorial Mono' }).click()
+  await page.getByRole('button', { name: 'Set Editorial Mono as default' }).click()
+  await expect(page.getByRole('status')).toContainText('Editorial Mono is now the default')
+  await expect(page.getByRole('button', { name: 'Editorial Mono is the default' })).toBeDisabled()
 
   await page.goto('/invoices/new')
   await page.waitForURL(/\/invoices\/[\w-]{36}/)
   await page.goto(page.url().replace(/\?.*$/, '') + '?step=review')
-  await expect(page.getByText(/Studio · A4/).or(page.getByText('Template · Studio'))).toBeVisible()
+  await expect(
+    page.getByText(/Editorial Mono · A4/).or(page.getByText('Template · Editorial Mono')),
+  ).toBeVisible()
 })
 
 test('customisation saves right away and shows in the preview', async ({ page }) => {
@@ -30,6 +32,11 @@ test('customisation saves right away and shows in the preview', async ({ page })
 
   await page.getByRole('radio', { name: 'green' }).click()
   await page.getByRole('radio', { name: 'US Letter' }).click()
+  // The picker reads settings from the database, so this waits for the save.
+  await expect(page.getByRole('radio', { name: 'US Letter' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
   await page.reload()
   await expect(page.getByRole('radio', { name: 'green' })).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByRole('radio', { name: 'US Letter' })).toHaveAttribute(

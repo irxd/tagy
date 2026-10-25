@@ -1,6 +1,7 @@
-import { Document, Image, Page, Text, View, type Styles } from '@react-pdf/renderer'
+import { Document, Image, Page, Path, Svg, Text, View, type Styles } from '@react-pdf/renderer'
 import type { ReactNode } from 'react'
 import type { TemplateId } from '@/db/types'
+import { fitInvoiceTitle, fontIds } from '@/templates/fonts'
 import { PAGE_WIDTH, type InvoiceView } from '@/templates/view'
 import { initials } from '@/ui/initials'
 import { pdfFonts } from './fonts'
@@ -29,7 +30,9 @@ export function InvoicePdf({ view, template }: { view: InvoiceView; template: Te
   const k = paper.w / PAGE_WIDTH
   const fonts = pdfFonts(template, view.fonts)
   const ctx: Ctx = { view, u: (px) => px * k, ...fonts }
-  const Body = { minimal: SwissLedger, classic: SerifLedger, bold: Bold, studio: Studio }[template]
+  const Body = { minimal: SwissLedger, classic: SerifLedger, bold: Bold, studio: EditorialMono }[
+    template
+  ]
   return (
     <Document
       title={`Invoice ${view.number}`}
@@ -716,27 +719,44 @@ function SerifLedger(ctx: Ctx) {
   )
 }
 
-/* ---------- Studio ---------- */
+/* ---------- Editorial Mono ---------- */
 
-function Studio(ctx: Ctx) {
-  const { view, u, body: text, body: figures } = ctx
-  const INK = '#16161A'
-  const MUTED = '#74747C'
-  const RAIL = '#F6F5F2'
-  const RULE = '#EBEAE6'
+function EditorialMono(ctx: Ctx) {
+  const { view, u, heading, body } = ctx
+  const INK = '#151515'
+  const SOFT = '#55534E'
+  const MUTED = '#8C8A84'
+  const FAINT = '#ABA9A2'
+  const RULE = '#3A3A3A'
   const b = view.business
-  const label: Style = { fontFamily: figures, fontSize: u(8), letterSpacing: u(0.8), color: MUTED }
-  const mono: Style = { fontFamily: figures }
-
-  const block = (title: string, strong: string, lines: string[] = [], isMono = false) => (
+  const c = view.client
+  const title = fitInvoiceTitle(fontIds('studio', view.fonts).heading, 135, 458)
+  const caps: Style = { fontSize: u(9), letterSpacing: u(1.6), textTransform: 'uppercase' }
+  const key: Style = { fontSize: u(9.5), letterSpacing: u(0.67), textTransform: 'uppercase' }
+  const cols: Style[] = [
+    { flex: 1, paddingRight: u(12) },
+    { width: u(81), textAlign: 'right' },
+    { width: u(81), textAlign: 'right' },
+    { width: u(81), textAlign: 'right' },
+  ]
+  const spacer = <View style={{ flexGrow: 1, minHeight: u(16) }} />
+  const party = (label: string, name: string, lines: string[]) => (
     <View style={{ gap: u(3) }}>
-      <T style={label}>{title}</T>
-      <T style={{ fontSize: u(10), fontWeight: 600, ...(isMono ? mono : {}) }}>{strong}</T>
-      {lines.map((line) => (
-        <T key={line} style={{ fontSize: u(9), color: MUTED }}>
-          {line}
-        </T>
-      ))}
+      <T style={key}>{label}</T>
+      <View>
+        <T style={{ fontSize: u(11), color: SOFT }}>{name}</T>
+        {lines.map((l) => (
+          <T key={l} style={{ fontSize: u(9), color: MUTED }}>
+            {l}
+          </T>
+        ))}
+      </View>
+    </View>
+  )
+  const block = (label: string, children: ReactNode) => (
+    <View style={{ gap: u(3), paddingRight: u(19) }}>
+      <T style={key}>{label}</T>
+      {children}
     </View>
   )
 
@@ -744,163 +764,186 @@ function Studio(ctx: Ctx) {
     <Page
       size={PAPER_PT[view.paper].size}
       style={{
-        fontFamily: text,
+        fontFamily: body,
         color: INK,
-        fontSize: u(9),
-        lineHeight: 1.3,
-        flexDirection: 'row',
+        backgroundColor: '#F5F4EF',
+        fontSize: u(9.5),
+        lineHeight: 1.5,
+        paddingTop: u(22),
+        paddingHorizontal: u(24),
+        paddingBottom: u(19),
       }}
     >
-      {/* The rail is fixed so it continues down every page. */}
-      <View
-        fixed
-        style={{
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          width: u(136),
-          backgroundColor: RAIL,
-        }}
-      />
-      <View style={{ width: u(136), paddingVertical: u(32), paddingHorizontal: u(20), gap: u(22) }}>
-        {view.show.logo && b.logoUrl ? (
-          <Image
-            src={b.logoUrl}
-            style={{
-              width: u(28),
-              height: u(28),
-              borderRadius: u(14),
-              objectFit: 'contain',
-              backgroundColor: 'white',
-            }}
-          />
-        ) : (
-          <View
-            style={{
-              width: u(28),
-              height: u(28),
-              borderRadius: u(14),
-              backgroundColor: view.accent,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <T style={{ color: 'white', fontSize: u(11), fontWeight: 700 }}>
-              {initials(b.name || '?').toLowerCase()}
-            </T>
-          </View>
-        )}
-        {block(
-          'FROM',
-          b.name || 'Your business',
-          pick<string>([
-            b.email,
-            b.address,
-            b.phone,
-            view.show.taxId && b.taxId ? `Tax ID ${b.taxId}` : '',
-          ]),
-        )}
-        {block(
-          'BILL TO',
-          view.client?.name ?? '—',
-          pick<string>([
-            view.client?.email,
-            view.client?.address,
-            view.show.taxId && view.client?.taxId ? `Tax ID ${view.client.taxId}` : '',
-          ]),
-        )}
-        {block('ISSUED', view.issued, [], true)}
-        {block('DUE', view.due, [], true)}
-        {view.reference ? block('REF.', view.reference, [], true) : null}
-        {view.paymentDetails && (
-          <View style={{ gap: u(3) }}>
-            <T style={label}>PAYMENT</T>
-            <T style={{ fontSize: u(9), color: MUTED }}>{view.paymentDetails}</T>
-          </View>
-        )}
-      </View>
-
-      <View
-        style={{
-          flex: 1,
-          paddingTop: u(32),
-          paddingHorizontal: u(24),
-          paddingBottom: u(28),
-          gap: u(26),
-        }}
-      >
-        <View style={{ gap: u(6) }}>
-          <T style={{ ...mono, fontSize: u(9), letterSpacing: u(0.5), color: MUTED }}>
-            {view.number}
-          </T>
-          <T style={{ fontSize: u(30), fontWeight: 600, letterSpacing: u(-1.2), lineHeight: 1 }}>
-            Invoice
-          </T>
-        </View>
-
+      <View style={{ flexGrow: 1 }}>
         <View
-          style={{ borderLeftWidth: u(2), borderColor: view.accent, paddingLeft: u(12), gap: u(4) }}
-        >
-          <T style={label}>{view.status === 'paid' ? 'PAID' : 'TOTAL DUE'}</T>
-          <T
-            style={{
-              fontSize: u(22),
-              fontWeight: 600,
-              letterSpacing: u(-0.6),
-              color: view.accent,
-              lineHeight: 1,
-            }}
-          >
-            {view.total}
-          </T>
-        </View>
-
-        <View style={{ gap: u(14) }}>
-          {view.lines.map((line) => (
-            <View
-              key={line.id}
-              wrap={false}
-              style={{ flexDirection: 'row', justifyContent: 'space-between', gap: u(8) }}
-            >
-              <View style={{ flex: 1, gap: u(2) }}>
-                <T style={{ fontSize: u(10.5), fontWeight: 500 }}>
-                  {line.title || 'Untitled item'}
-                </T>
-                {line.description && (
-                  <T style={{ fontSize: u(8.5), color: MUTED }}>{line.description}</T>
-                )}
-                <T style={{ ...mono, fontSize: u(8.5), color: MUTED }}>
-                  {line.qty} × {line.rate}
-                </T>
-              </View>
-              <T style={{ ...mono, fontSize: u(10.5) }}>{line.amount}</T>
-            </View>
-          ))}
-        </View>
-
-        <View
-          wrap={false}
           style={{
-            borderTopWidth: 1,
-            borderColor: RULE,
-            paddingTop: u(14),
-            gap: u(6),
-            fontSize: u(9.5),
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: u(16),
           }}
         >
-          <TotalsRows ctx={ctx} labelStyle={{ color: MUTED }} valueStyle={mono} />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: u(6) }}>
-            <T style={{ fontSize: u(11), fontWeight: 600 }}>Total</T>
-            <T style={{ ...mono, fontSize: u(11), fontWeight: 500 }}>
-              {view.totalAmount} {view.currency}
-            </T>
+          <T
+            style={{
+              fontFamily: heading,
+              fontSize: u(title),
+              letterSpacing: u(-title * 0.016),
+              lineHeight: 0.9,
+            }}
+          >
+            INVOICE
+          </T>
+          <LogoMark ctx={ctx} />
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            gap: u(24),
+            marginTop: u(32),
+          }}
+        >
+          <View style={{ flexShrink: 1, gap: u(16) }}>
+            {party(
+              'From',
+              b.name || 'Your business',
+              pick<string>([
+                b.email,
+                [b.phone, b.website].filter(Boolean).join(' · '),
+                b.address,
+                view.show.taxId && b.taxId ? `Tax ID ${b.taxId}` : '',
+              ]),
+            )}
+            {party(
+              'To',
+              c?.name || '—',
+              pick<string>([
+                c?.contact,
+                c?.email,
+                c?.address,
+                view.show.taxId && c?.taxId ? `Tax ID ${c.taxId}` : '',
+              ]),
+            )}
+          </View>
+          <View style={{ alignItems: 'flex-end', gap: u(16) }}>
+            <View style={{ alignItems: 'flex-end', gap: u(3) }}>
+              <View style={{ flexDirection: 'row', gap: u(7), paddingRight: u(19) }}>
+                <T style={key}>Issued</T>
+                <Svg width={u(46)} height={u(14)} viewBox="0 0 34 11" style={{ marginTop: u(6) }}>
+                  <Path d="M0 4h33.5v7" stroke={INK} strokeWidth={0.6} fill="none" />
+                </Svg>
+              </View>
+              <T
+                style={{
+                  fontSize: u(16),
+                  lineHeight: 1.1,
+                  paddingVertical: u(7),
+                  paddingHorizontal: u(22),
+                  borderWidth: u(0.95),
+                  borderColor: INK,
+                  borderRadius: u(40),
+                }}
+              >
+                {view.number} / {view.issued}
+              </T>
+            </View>
+            {view.reference && block('Ref', <T style={{ fontSize: u(11) }}>{view.reference}</T>)}
+            {block(
+              'Due',
+              <View>
+                <T style={{ fontSize: u(20), lineHeight: 1.1 }}>{view.due}</T>
+                <T style={{ fontSize: u(9), color: MUTED }}>{view.dueNote}</T>
+              </View>,
+            )}
           </View>
         </View>
 
-        <View style={{ flexGrow: 1 }} />
-        {view.notes && <T style={{ fontSize: u(9), color: MUTED }}>{view.notes}</T>}
-        {view.show.signature && <Signature ctx={ctx} color={MUTED} ink={INK} />}
+        {spacer}
+
+        <View>
+          <View
+            fixed
+            style={{
+              flexDirection: 'row',
+              paddingBottom: u(11),
+              borderBottomWidth: u(0.8),
+              borderColor: RULE,
+              ...caps,
+            }}
+          >
+            {['Services', 'Rate', 'Qty', 'Total'].map((h, i) => (
+              <T key={h} style={cols[i]}>
+                {h}
+              </T>
+            ))}
+          </View>
+          {view.lines.map((l, i) => {
+            const [item, rate, qty, amount] = cols
+            return (
+              <View
+                key={l.id}
+                wrap={false}
+                style={{ flexDirection: 'row', paddingTop: u(i === 0 ? 15 : 13) }}
+              >
+                <View style={item}>
+                  <T>{l.title || 'Untitled item'}</T>
+                  {l.description && (
+                    <T style={{ fontSize: u(9), color: MUTED, marginTop: u(1) }}>{l.description}</T>
+                  )}
+                </View>
+                <T style={rate}>{l.rate}</T>
+                <T style={qty}>{l.qty}</T>
+                <T style={amount}>{l.amount}</T>
+              </View>
+            )
+          })}
+        </View>
+
+        {spacer}
+
+        <View wrap={false} style={{ gap: u(4) }}>
+          <TotalsRows ctx={ctx} labelStyle={caps} valueStyle={caps} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: u(16) }}>
+            <T style={{ fontFamily: heading, fontSize: u(31), lineHeight: 1 }}>Total</T>
+            <View style={{ flex: 1, borderTopWidth: u(0.8), borderColor: RULE }} />
+            <T style={{ fontSize: u(25.5), lineHeight: 1.1, color: view.accent }}>{view.total}</T>
+          </View>
+        </View>
+
+        {(view.notes || view.paymentDetails || view.show.signature) && (
+          <View
+            wrap={false}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              gap: u(24),
+              marginTop: u(20),
+              fontSize: u(9),
+              color: FAINT,
+            }}
+          >
+            <View style={{ flexShrink: 1, gap: u(6) }}>
+              {view.notes && <T>{view.notes}</T>}
+              {view.paymentDetails && <T>{view.paymentDetails}</T>}
+            </View>
+            {view.show.signature && (
+              <T
+                style={{
+                  width: u(175),
+                  flexShrink: 0,
+                  paddingTop: u(6),
+                  borderTopWidth: u(0.8),
+                  borderColor: INK,
+                }}
+              >
+                Authorized signature
+              </T>
+            )}
+          </View>
+        )}
       </View>
     </Page>
   )

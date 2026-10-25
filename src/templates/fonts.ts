@@ -41,12 +41,34 @@ export const FONT_LABELS: Record<NamedFont, string> = {
   'space-mono': 'Space Mono',
 }
 
+/**
+ * Width of the word "INVOICE" in em, at weight 400, measured in the browser.
+ * Templates with a title too big to wrap size it from this so any heading
+ * font fits the page.
+ */
+export const INVOICE_EM: Record<NamedFont, number> = {
+  geist: 3.93,
+  'inter-tight': 3.68,
+  'dm-sans': 3.86,
+  newsreader: 4.2,
+  'source-serif-4': 4.17,
+  'instrument-serif': 2.93,
+  'geist-mono': 4.2,
+  'dm-mono': 4.2,
+  'space-mono': 4.28,
+}
+
+/** Size for an "INVOICE" title: `max` px as drawn, smaller if that's wider than `width` px. */
+export function fitInvoiceTitle(font: NamedFont, max: number, width: number) {
+  return Math.min(max, Math.floor(width / INVOICE_EM[font]))
+}
+
 /** Each template's own type, from tagy.pen: headings and body. */
 export const TEMPLATE_FONTS: Record<TemplateId, Record<FontRole, NamedFont>> = {
   minimal: { heading: 'geist', body: 'geist' },
   classic: { heading: 'source-serif-4', body: 'source-serif-4' },
   bold: { heading: 'inter-tight', body: 'inter-tight' },
-  studio: { heading: 'dm-sans', body: 'dm-sans' },
+  studio: { heading: 'instrument-serif', body: 'space-mono' },
 }
 
 /** Font ids for a template under the Font setting; HTML and PDF share this rule. */

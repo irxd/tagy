@@ -32,7 +32,7 @@ const DESCRIPTIONS: Record<TemplateId, string> = {
   minimal: 'Big sender masthead, hairline grid',
   classic: 'Bookish serif in one ruled box',
   bold: 'Accent band leads with the total',
-  studio: 'Details in a side rail',
+  studio: 'Poster serif title over typewriter mono',
 }
 const SHOW: { key: keyof ShowFields; label: string }[] = [
   { key: 'logo', label: 'Business logo' },
