@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react'
 import type { TemplateId } from '@/db/types'
 import { BoldTemplate } from './BoldTemplate'
-import { ClassicTemplate } from './ClassicTemplate'
+import { SerifLedgerTemplate } from './SerifLedgerTemplate'
 import { StudioTemplate } from './StudioTemplate'
 import { SwissLedgerTemplate } from './SwissLedgerTemplate'
 import type { InvoiceView } from './view'
 
 const templates: Record<TemplateId, (props: { view: InvoiceView }) => ReactNode> = {
   minimal: SwissLedgerTemplate,
-  classic: ClassicTemplate,
+  classic: SerifLedgerTemplate,
   bold: BoldTemplate,
   studio: StudioTemplate,
 }

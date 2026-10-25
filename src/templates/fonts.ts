@@ -44,7 +44,7 @@ export const FONT_LABELS: Record<NamedFont, string> = {
 /** Each template's own type, from tagy.pen: headings and body. */
 export const TEMPLATE_FONTS: Record<TemplateId, Record<FontRole, NamedFont>> = {
   minimal: { heading: 'geist', body: 'geist' },
-  classic: { heading: 'newsreader', body: 'newsreader' },
+  classic: { heading: 'source-serif-4', body: 'source-serif-4' },
   bold: { heading: 'inter-tight', body: 'inter-tight' },
   studio: { heading: 'dm-sans', body: 'dm-sans' },
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { initials } from '@/ui/initials'
 import { templateFonts } from './fonts'
+import { LogoMark } from './LogoMark'
 import { PAGE_HEIGHT, PAGE_WIDTH, type InvoiceView } from './view'
 
 const INK = '#111111'
@@ -37,16 +37,7 @@ export function SwissLedgerTemplate({ view }: { view: InvoiceView }) {
           {view.show.taxId && b.taxId && <div>Tax ID: {b.taxId}</div>}
           {b.address && <div>{b.address}</div>}
         </div>
-        {view.show.logo && b.logoUrl ? (
-          <img src={b.logoUrl} alt="" className="size-[38px] shrink-0 object-contain" />
-        ) : (
-          <span
-            className="grid size-[38px] shrink-0 place-items-center rounded-full text-[16px] font-semibold text-white"
-            style={{ background: view.accent }}
-          >
-            {initials(b.name || '?').slice(0, 1)}
-          </span>
-        )}
+        <LogoMark view={view} />
       </header>
 
       <div className="mt-[35px] grid grid-cols-2">
