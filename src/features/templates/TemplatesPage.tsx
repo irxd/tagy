@@ -161,7 +161,13 @@ function usePreviewView(settings: AppSettings): InvoiceView {
   const client = useClient(latest?.clientId ?? undefined)
   const logoUrl = useBlobUrl(settings.business.logoBlobId)
   const source = latest ? { invoice: latest, client } : sampleInvoice(settings)
-  return buildInvoiceView({ ...source, settings, logoUrl, today: todayISO() })
+  const view = buildInvoiceView({ ...source, settings, logoUrl, today: todayISO() })
+  // Example tax IDs where none is set, so the Tax ID toggle visibly does something.
+  return {
+    ...view,
+    business: { ...view.business, taxId: view.business.taxId || '47-3829105' },
+    client: view.client && { ...view.client, taxId: view.client.taxId || 'EU372819465' },
+  }
 }
 
 function TemplateChooser({

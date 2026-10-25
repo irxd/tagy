@@ -72,3 +72,12 @@ test('the logo toggle is turned off for templates without a logo', async ({ page
   await expect(logo).toBeDisabled()
   await expect(page.getByText('Ruled Index has no place for a logo')).toBeVisible()
 })
+
+test('the Tax ID toggle shows example tax IDs when none are set', async ({ page }) => {
+  await page.goto('/templates')
+  const preview = page.getByRole('region', { name: 'Preview' })
+  await expect(preview).toContainText('47-3829105')
+  await expect(preview).toContainText('EU372819465')
+  await page.getByRole('switch', { name: 'Tax ID' }).click()
+  await expect(preview).not.toContainText('47-3829105')
+})
