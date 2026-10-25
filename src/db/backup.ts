@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { base64ToBlob, blobToBase64 } from '@/lib/base64'
 import { db } from './db'
-import { invoiceV1toV2, settingsV1toV2, taxRatesV1 } from './migrations'
+import { invoiceV1toV2, settingsV1toV2, settingsV2toV3, taxRatesV1 } from './migrations'
 import type { AppSettings, Client, Invoice, StoredBlob } from './types'
 
 /*
@@ -10,7 +10,7 @@ import type { AppSettings, Client, Invoice, StoredBlob } from './types'
  * replaces all data in one transaction — a failed import changes nothing.
  */
 
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 3
 
 export class BackupError extends Error {}
 
@@ -100,7 +100,18 @@ const settingsSchema: z.ZodType<AppSettings> = z.object({
   defaultTaxPct: z.number().min(0).max(100),
   defaultTemplate: template,
   accent: z.enum(['blue', 'ink', 'green', 'orange', 'pink', 'violet']),
-  font: z.enum(['sans', 'serif', 'mono']),
+  font: z.enum([
+    'template',
+    'geist',
+    'inter-tight',
+    'dm-sans',
+    'newsreader',
+    'source-serif-4',
+    'instrument-serif',
+    'geist-mono',
+    'dm-mono',
+    'space-mono',
+  ]),
   paper: z.enum(['a4', 'letter']),
   showFields: z.object({
     logo: z.boolean(),
@@ -145,6 +156,10 @@ const migrations: Record<number, (data: unknown) => unknown> = {
         : d.invoices,
       settings: d.settings ? settingsV1toV2(d.settings) : d.settings,
     }
+  },
+  2: (data) => {
+    const d = data as { settings?: Record<string, unknown> | null }
+    return { ...d, settings: d.settings ? settingsV2toV3(d.settings) : d.settings }
   },
 }
 

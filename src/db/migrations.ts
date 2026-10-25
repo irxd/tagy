@@ -32,3 +32,15 @@ export function settingsV1toV2(settings: Raw): Raw {
 export function taxRatesV1(settings: Raw | undefined): V1TaxRate[] {
   return (settings?.taxRates as V1TaxRate[] | undefined) ?? []
 }
+
+const FONTS_V2: Record<string, string> = {
+  sans: 'template',
+  serif: 'newsreader',
+  mono: 'geist-mono',
+}
+
+/** v2 → v3: the Font setting names a font instead of Sans, Serif or Mono. */
+export function settingsV2toV3(settings: Raw): Raw {
+  const font = FONTS_V2[settings.font as string]
+  return font ? { ...settings, font } : settings
+}

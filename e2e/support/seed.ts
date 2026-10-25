@@ -144,7 +144,7 @@ export function designSettings() {
     defaultTaxPct: 8,
     defaultTemplate: 'bold',
     accent: 'blue',
-    font: 'sans',
+    font: 'template',
     paper: 'a4',
     showFields: { logo: true, taxId: true, paymentDetails: true, signature: false },
     defaultNotes: 'Thank you for your business!',

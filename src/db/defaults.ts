@@ -21,7 +21,7 @@ export function defaultSettings(): AppSettings {
     defaultTaxPct: 0,
     defaultTemplate: 'minimal',
     accent: 'blue',
-    font: 'sans',
+    font: 'template',
     paper: 'a4',
     showFields: { logo: true, taxId: true, paymentDetails: true, signature: false },
     defaultNotes: 'Thank you for your business!',
