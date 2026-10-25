@@ -29,6 +29,7 @@ Everything lives in the browser's IndexedDB on your device. There is no backend 
 Planned:
 
 - **Animation**: add motion to the interface, such as screen changes, sheets and dialogs, and status changes, and respect the system's reduced-motion setting.
+- **Interaction and UX**: improve how the app feels to use, from the feedback on each action to the flow of common tasks, on desktop and mobile.
 
 ## How it's built
 
