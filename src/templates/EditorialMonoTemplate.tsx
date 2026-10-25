@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { fitInvoiceTitle, fontIds, templateFonts } from './fonts'
-import { LogoMark } from './LogoMark'
 import { PAGE_HEIGHT, PAGE_WIDTH, type InvoiceView } from './view'
 
 const INK = '#151515'
@@ -18,7 +17,7 @@ const RULE = `0.8px solid #3A3A3A`
  */
 export function EditorialMonoTemplate({ view }: { view: InvoiceView }) {
   const { heading, body } = templateFonts('studio', view.fonts)
-  const title = fitInvoiceTitle(fontIds('studio', view.fonts).heading, 135, 458)
+  const title = fitInvoiceTitle(fontIds('studio', view.fonts).heading, 135, 512)
   const b = view.business
   const c = view.client
   const caps = 'text-[9px] tracking-[1.6px] uppercase'
@@ -35,14 +34,13 @@ export function EditorialMonoTemplate({ view }: { view: InvoiceView }) {
         printColorAdjust: 'exact',
       }}
     >
-      <header className="flex items-center justify-between gap-4">
+      <header>
         <h1
           className="leading-[0.9] font-normal whitespace-nowrap"
           style={{ fontFamily: heading, fontSize: title, letterSpacing: -title * 0.016 }}
         >
           INVOICE
         </h1>
-        <LogoMark view={view} />
       </header>
 
       <div className="mt-8 flex items-end justify-between gap-6">

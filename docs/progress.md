@@ -16,6 +16,7 @@ What was built in each phase, and where it differs from `build-plan.md`. Newest 
 
 - Every template shows what the form holds and nothing else. Dropped from the boards: company codes, "Issued by", the "©" mark and project line. Added where the boards had no place: reference, due note, client contact and email, tax IDs, website, item descriptions, notes, payment details, payment terms and the signature line. The monogram on Serif Ledger holds the logo.
 - The boards draw a monochrome page; the accent colour marks the Total and the logo placeholder.
+- Only Swiss Ledger and Serif Ledger show the logo. Editorial Mono and Ruled Index leave it out, as their boards do, so the Business logo toggle has no effect on them.
 - Sizes are the boards' scaled from 416 to 560 px, so body text prints at the same ~10.5 pt as before.
 - Editorial Mono and Ruled Index keep text 24 px from the page edge instead of the boards' 10–12 px, which many printers can't reach. Ruled Index's rules and grey band still run edge to edge.
 - Editorial Mono's poster title sizes itself from the heading font's measured width (`INVOICE_EM`), so a wider font stays on one line. Its gaps are tighter than drawn so the design invoice fits one US Letter page.

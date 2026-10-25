@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { templateFonts } from './fonts'
-import { LogoMark } from './LogoMark'
 import { PAGE_HEIGHT, PAGE_WIDTH, type InvoiceView } from './view'
 
 const INK = '#111111'
@@ -33,16 +32,10 @@ export function RuledIndexTemplate({ view }: { view: InvoiceView }) {
       }}
     >
       <header
-        className="flex h-[97px] items-start justify-between gap-6 px-6 pt-4"
-        style={{ borderBottom: RULE }}
+        className="h-[97px] px-6 pt-4 text-[30px] leading-none tracking-[-0.8px] break-words"
+        style={{ borderBottom: RULE, fontFamily: heading }}
       >
-        <span
-          className="min-w-0 text-[30px] leading-none tracking-[-0.8px] break-words"
-          style={{ fontFamily: heading }}
-        >
-          {b.name || 'Your business'}
-        </span>
-        <LogoMark view={view} />
+        {b.name || 'Your business'}
       </header>
 
       <Split

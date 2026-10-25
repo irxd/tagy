@@ -143,21 +143,9 @@ function RuledIndex(ctx: Ctx) {
       style={{ fontFamily: body, color: INK, fontSize: u(10), lineHeight: 1.3 }}
     >
       <View style={{ flexGrow: 1 }}>
-        <View
-          style={{
-            height: u(97),
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: u(24),
-            paddingHorizontal: u(24),
-            paddingTop: u(16),
-            ...rule,
-          }}
-        >
+        <View style={{ height: u(97), paddingHorizontal: u(24), paddingTop: u(16), ...rule }}>
           <T
             style={{
-              flexShrink: 1,
               fontFamily: heading,
               fontSize: u(30),
               letterSpacing: u(-0.8),
@@ -166,7 +154,6 @@ function RuledIndex(ctx: Ctx) {
           >
             {b.name || 'Your business'}
           </T>
-          <LogoMark ctx={ctx} />
         </View>
 
         {split(
@@ -664,7 +651,7 @@ function EditorialMono(ctx: Ctx) {
   const RULE = '#3A3A3A'
   const b = view.business
   const c = view.client
-  const title = fitInvoiceTitle(fontIds('studio', view.fonts).heading, 135, 458)
+  const title = fitInvoiceTitle(fontIds('studio', view.fonts).heading, 135, 512)
   const caps: Style = { fontSize: u(9), letterSpacing: u(1.6), textTransform: 'uppercase' }
   const key: Style = { fontSize: u(9.5), letterSpacing: u(0.67), textTransform: 'uppercase' }
   const cols: Style[] = [
@@ -709,26 +696,16 @@ function EditorialMono(ctx: Ctx) {
       }}
     >
       <View style={{ flexGrow: 1 }}>
-        <View
+        <T
           style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: u(16),
+            fontFamily: heading,
+            fontSize: u(title),
+            letterSpacing: u(-title * 0.016),
+            lineHeight: 0.9,
           }}
         >
-          <T
-            style={{
-              fontFamily: heading,
-              fontSize: u(title),
-              letterSpacing: u(-title * 0.016),
-              lineHeight: 0.9,
-            }}
-          >
-            INVOICE
-          </T>
-          <LogoMark ctx={ctx} />
-        </View>
+          INVOICE
+        </T>
 
         <View
           style={{
