@@ -9,6 +9,7 @@ import { cn } from '@/ui/cn'
 import { Avatar } from '@/ui/Data'
 import { Overlay } from '@/ui/Overlay'
 import { useToast } from '@/ui/toastContext'
+import { useEditor } from './useEditor'
 
 /**
  * "Who is this invoice for?" Search saved clients, or type a new name and
@@ -147,3 +148,42 @@ const rowClass = cn(
   'flex w-full items-center gap-3 rounded-tile-md px-2 py-2 text-left hover:bg-tile-tile',
   'outline-none focus-visible:bg-tile-tile focus-visible:outline-2 focus-visible:outline-tile-accent',
 )
+
+/**
+ * Edits the invoice's saved client, so later invoices for them get the
+ * change too. A sent invoice prints its frozen copy, so that's updated as
+ * well; other sent invoices keep theirs.
+ */
+export function EditClientOverlay({
+  open,
+  onOpenChange,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const { invoice, client, settings, set } = useEditor()
+  if (!client) return null
+  return (
+    <Overlay
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit client"
+      description="Changes are saved to this client"
+    >
+      <ClientForm
+        key={String(open)}
+        client={client}
+        manage={false}
+        defaultCurrency={settings.currency}
+        defaultTerms={settings.terms}
+        onDone={(saved) => {
+          if (saved && invoice.clientSnapshot) {
+            const { name, contact, email, address, taxId } = saved
+            set({ clientSnapshot: { name, contact, email, address, taxId } })
+          }
+          onOpenChange(false)
+        }}
+      />
+    </Overlay>
+  )
+}

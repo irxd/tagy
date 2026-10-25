@@ -58,6 +58,8 @@ export function createInvoice(input: NewInvoice = {}): Promise<Invoice> {
       paidAt: null,
       paidMethod: '',
       paidNote: '',
+      dateFormat: settings.dateFormat,
+      businessOverride: null,
       clientSnapshot: null,
       businessSnapshot: null,
       ...input,
@@ -111,6 +113,8 @@ export async function duplicateInvoice(id: string): Promise<Invoice> {
     notes: source.notes,
     paymentDetails: source.paymentDetails,
     templateId: source.templateId,
+    dateFormat: source.dateFormat,
+    businessOverride: source.businessOverride,
   })
 }
 

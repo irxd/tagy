@@ -35,6 +35,8 @@ const invoice = {
   notes: ' Thanks! ',
   paymentDetails: 'Bank transfer',
   paidAt: null,
+  dateFormat: 'dd MMM, yyyy',
+  businessOverride: null,
   clientSnapshot: null,
   businessSnapshot: null,
 } as unknown as Invoice
@@ -81,6 +83,12 @@ describe('buildInvoiceView', () => {
   it('labels the payment terms', () => {
     expect(view({ terms: 'net30' }).terms).toBe('Net 30')
     expect(view({ terms: 'receipt' }).terms).toBe('On receipt')
+  })
+
+  it("uses the invoice's own date format and business details", () => {
+    const v = view({ dateFormat: 'yyyy-MM-dd', businessOverride: { taxId: '99-1' } })
+    expect(v.issued).toBe('2026-10-16')
+    expect(v.business).toMatchObject({ name: settings.business.name, taxId: '99-1' })
   })
 
   it('uses the snapshots of a sent invoice', () => {

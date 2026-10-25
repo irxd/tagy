@@ -33,6 +33,8 @@ const invoice = (patch: Partial<Invoice> = {}): Invoice => ({
   paidAt: null,
   paidMethod: '',
   paidNote: '',
+  dateFormat: 'dd MMM, yyyy',
+  businessOverride: null,
   clientSnapshot: null,
   businessSnapshot: null,
   createdAt: '2026-10-16T09:00:00.000Z',
@@ -91,6 +93,15 @@ describe('transitions', () => {
       clientSnapshot: { name: 'Northwind Studio', email: 'billing@northwind.co' },
       businessSnapshot: { name: 'Tagy Studio' },
     })
+  })
+
+  it('freezes the business details edited on the invoice over Settings', () => {
+    const patch = markSent(invoice({ businessOverride: { address: '1 Elm St' } }), {
+      now,
+      client,
+      business,
+    })
+    expect(patch.businessSnapshot).toMatchObject({ name: 'Tagy Studio', address: '1 Elm St' })
   })
 
   it('skips the client snapshot with no client', () => {

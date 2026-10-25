@@ -7,10 +7,10 @@ import type { Page } from '@playwright/test'
  */
 export async function seed(page: Page, stores: Record<string, object[]>) {
   // Opening the database before Dexie has created its stores would fail, so
-  // wait for the current schema (Dexie version 2 = IndexedDB version 20). Pages that
+  // wait for the current schema (Dexie version 5 = IndexedDB version 50). Pages that
   // don't read data yet never open it, so call this from a page that does.
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((d) => d.name === 'tagy' && (d.version ?? 0) >= 20),
+    (await indexedDB.databases()).some((d) => d.name === 'tagy' && (d.version ?? 0) >= 50),
   )
   await page.evaluate(async (data) => {
     const names = Object.keys(data)
@@ -86,6 +86,8 @@ export function invoice(clientId: string, rate: number, patch: object = {}) {
     paidAt: null,
     paidMethod: '',
     paidNote: '',
+    dateFormat: 'dd MMM, yyyy',
+    businessOverride: null,
     clientSnapshot: null,
     businessSnapshot: null,
     createdAt: now,

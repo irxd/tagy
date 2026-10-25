@@ -6,6 +6,7 @@ import {
   settingsV1toV2,
   settingsV2toV3,
   settingsV3toV4,
+  invoiceV4toV5,
   taxRatesV1,
 } from './migrations'
 import type { AppSettings, Client, Invoice, StoredBlob } from './types'
@@ -16,7 +17,7 @@ import type { AppSettings, Client, Invoice, StoredBlob } from './types'
  * replaces all data in one transaction — a failed import changes nothing.
  */
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 export class BackupError extends Error {}
 
@@ -56,6 +57,8 @@ const business = z.object({
   paymentDetails: z.string(),
 })
 
+const businessDetails = business.omit({ logoBlobId: true, paymentDetails: true })
+
 const clientSnapshot = z.object({
   name: z.string(),
   contact: z.string(),
@@ -86,8 +89,10 @@ const invoiceSchema: z.ZodType<Invoice> = z.object({
   paidAt: isoDate.nullable(),
   paidMethod: z.string(),
   paidNote: z.string(),
+  dateFormat: z.string(),
+  businessOverride: businessDetails.partial().nullable(),
   clientSnapshot: clientSnapshot.nullable(),
-  businessSnapshot: business.omit({ logoBlobId: true, paymentDetails: true }).nullable(),
+  businessSnapshot: businessDetails.nullable(),
   sample: z.boolean().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -171,6 +176,17 @@ const migrations: Record<number, (data: unknown) => unknown> = {
   3: (data) => {
     const d = data as { settings?: Record<string, unknown> | null }
     return { ...d, settings: d.settings ? settingsV3toV4(d.settings) : d.settings }
+  },
+  4: (data) => {
+    const d = data as { invoices?: unknown; settings?: Record<string, unknown> | null }
+    return {
+      ...d,
+      invoices: Array.isArray(d.invoices)
+        ? d.invoices.map((inv: Record<string, unknown>) =>
+            invoiceV4toV5(inv, d.settings ?? undefined),
+          )
+        : d.invoices,
+    }
   },
 }
 

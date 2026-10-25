@@ -48,7 +48,9 @@ import { useToast } from '@/ui/toastContext'
 import { Toggle } from '@/ui/Toggle'
 import { DecimalInput, MoneyInput } from './inputs'
 import { PreviewDialog, ScaledPage } from './preview'
-import { PercentField } from './sections'
+import { EditClientOverlay } from './ClientPicker'
+import { BusinessFields, BusinessSource, DateFormatField, PercentField } from './sections'
+import { useBusinessDetails } from './useBusinessDetails'
 import { useEditor } from './useEditor'
 import { useInvoiceView } from './useInvoiceView'
 import { useDownloadInvoice } from './useDownloadInvoice'
@@ -195,7 +197,10 @@ function Heading({ title, sub, action }: { title: string; sub: string; action?: 
 /* ---------- 1 · Client ---------- */
 
 function ClientStep() {
-  const { invoice, settings, set } = useEditor()
+  const { invoice, settings, set, client } = useEditor()
+  const business = useBusinessDetails().details
+  const [businessOpen, setBusinessOpen] = useState(false)
+  const [clientOpen, setClientOpen] = useState(false)
   const clients = useClients()
   const toast = useToast()
   const [query, setQuery] = useState('')
@@ -296,19 +301,37 @@ function ClientStep() {
           </li>
         </ul>
       </section>
-      <div className="flex items-center gap-3 rounded-2xl border border-tile-border bg-tile-panel px-3.5 py-3">
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-xs text-tile-muted">From</span>
-          <span className="truncate text-sm font-semibold">
-            {[settings.business.name || 'Your business', settings.business.email]
-              .filter(Boolean)
-              .join(' · ')}
-          </span>
+      {client && (
+        <PartyRow
+          label="Bill to"
+          value={[client.name, client.email].filter(Boolean).join(' · ')}
+          onEdit={() => setClientOpen(true)}
+        />
+      )}
+      <PartyRow
+        label="From"
+        value={[business.name || 'Your business', business.email].filter(Boolean).join(' · ')}
+        onEdit={() => setBusinessOpen(true)}
+      />
+      <EditClientOverlay open={clientOpen} onOpenChange={setClientOpen} />
+      <Overlay
+        open={businessOpen}
+        onOpenChange={setBusinessOpen}
+        title="Your business"
+        description="Changes apply to this invoice only"
+      >
+        <div className="flex justify-end">
+          <BusinessSource />
         </div>
-        <Link to="/settings/business" className="text-sm font-semibold text-tile-accent-ink">
-          Edit
-        </Link>
-      </div>
+        <BusinessFields />
+        <Button
+          variant="dark"
+          className="mb-5 justify-center"
+          onClick={() => setBusinessOpen(false)}
+        >
+          Done
+        </Button>
+      </Overlay>
       <Overlay
         open={formOpen}
         onOpenChange={setFormOpen}
@@ -325,6 +348,25 @@ function ClientStep() {
         />
       </Overlay>
     </>
+  )
+}
+
+function PartyRow({ label, value, onEdit }: { label: string; value: string; onEdit: () => void }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-tile-border bg-tile-panel px-3.5 py-3">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-xs text-tile-muted">{label}</span>
+        <span className="truncate text-sm font-semibold">{value}</span>
+      </div>
+      <button
+        type="button"
+        aria-label={`Edit ${label === 'From' ? 'your business' : 'client'}`}
+        onClick={onEdit}
+        className="text-sm font-semibold text-tile-accent-ink focus-visible:outline-2 focus-visible:outline-tile-accent"
+      >
+        Edit
+      </button>
+    </div>
   )
 }
 
@@ -374,6 +416,7 @@ function DetailsStep() {
             onChange={(e) => e.target.value && set({ dueDate: e.target.value })}
           />
         </div>
+        <DateFormatField />
         <fieldset className="flex flex-col gap-2.5 rounded-tile-md bg-tile-tile px-3.5 pt-3 pb-3.5">
           <legend className="contents">
             <span className="flex justify-between text-[13px] text-tile-muted">

@@ -19,6 +19,8 @@ export interface ClientFormProps {
   invoiceCount?: number
   defaultCurrency: string
   defaultTerms: PaymentTerms
+  /** Offer archive or delete; off when editing from an invoice. */
+  manage?: boolean
   onDone: (saved?: Client) => void
 }
 
@@ -37,6 +39,7 @@ export function ClientForm({
   invoiceCount = 0,
   defaultCurrency,
   defaultTerms,
+  manage = true,
   onDone,
 }: ClientFormProps) {
   const toast = useToast()
@@ -158,6 +161,7 @@ export function ClientForm({
       {/* Pinned to the bottom of a scrolling sheet so Save stays reachable on short phones. */}
       <div className="sticky bottom-0 -mx-5 flex items-center gap-2 bg-tile-panel px-5 pt-2 pb-[max(20px,env(safe-area-inset-bottom))] desk:static desk:mx-0 desk:px-0 desk:pb-0">
         {client &&
+          manage &&
           (invoiceCount === 0 ? (
             <IconButton icon={Trash2} label={`Delete ${client.name}`} onClick={remove} />
           ) : (

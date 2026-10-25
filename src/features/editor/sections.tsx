@@ -15,7 +15,7 @@ import { isNumberTaken } from '@/db/invoices'
 import type { LineItem, PaymentTerms } from '@/db/types'
 import { dueDateFor } from '@/domain/dates'
 import { newLineItem, recentItems } from '@/domain/items'
-import { termOptions } from '@/features/settings/options'
+import { dateFormatOptions, termOptions } from '@/features/settings/options'
 import { Button } from '@/ui/Button'
 import { cn } from '@/ui/cn'
 import { MiniChip } from '@/ui/Chip'
@@ -24,6 +24,7 @@ import { DateField, SelectField, TextAreaField, TextField } from '@/ui/Field'
 import { Menu, MenuItem } from '@/ui/Menu'
 import { Checkbox, Toggle } from '@/ui/Toggle'
 import { DecimalInput, MoneyInput } from './inputs'
+import { useBusinessDetails } from './useBusinessDetails'
 import { useEditor } from './useEditor'
 
 /** Card frame used by the editor's Items, Summary, Notes and Payment details. */
@@ -64,8 +65,8 @@ function Hint({ icon: Icon, children }: { icon: typeof Eye; children: ReactNode 
   )
 }
 
-/** Details: number, dates, currency, terms, tax, discount, reference. */
-export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
+/** Details: number, dates, date format, currency, terms, tax, discount, reference. */
+export function DetailsFields({ columns = 3 }: { columns?: 2 | 3 }) {
   const { invoice, set, date } = useEditor()
   const [number, setNumber] = useState<string | null>(null)
   const [numberError, setNumberError] = useState<string | null>(null)
@@ -82,7 +83,7 @@ export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
 
   return (
     <div
-      className={cn('grid gap-2.5', columns === 4 ? 'grid-cols-2 @xl:grid-cols-4' : 'grid-cols-2')}
+      className={cn('grid gap-2.5', columns === 3 ? 'grid-cols-2 @xl:grid-cols-3' : 'grid-cols-2')}
     >
       <TextField
         label="Invoice no."
@@ -109,6 +110,7 @@ export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
         min={invoice.issueDate}
         onChange={(e) => e.target.value && set({ dueDate: e.target.value })}
       />
+      <DateFormatField />
       <SelectField
         label="Currency"
         value={invoice.currency}
@@ -423,6 +425,94 @@ export function NotesCard({ className }: { className?: string }) {
         value={invoice.notes}
         onChange={(e) => set({ notes: e.target.value })}
       />
+    </Card>
+  )
+}
+
+/** The invoice's own date format, which its dates are printed in. */
+export function DateFormatField() {
+  const { invoice, set } = useEditor()
+  return (
+    <SelectField
+      label="Date format"
+      value={invoice.dateFormat}
+      options={dateFormatOptions()}
+      onChange={(e) => set({ dateFormat: e.target.value })}
+    />
+  )
+}
+
+/** Name, contacts, address and tax ID of the business, for this invoice. */
+export function BusinessFields() {
+  const { details, change } = useBusinessDetails()
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      <TextField
+        label="Business name"
+        className="col-span-2"
+        value={details.name}
+        onChange={(e) => change({ name: e.target.value })}
+      />
+      <TextField
+        label="Email"
+        type="email"
+        value={details.email}
+        onChange={(e) => change({ email: e.target.value })}
+      />
+      <TextField
+        label="Phone"
+        value={details.phone}
+        onChange={(e) => change({ phone: e.target.value })}
+      />
+      <TextField
+        label="Website"
+        value={details.website}
+        onChange={(e) => change({ website: e.target.value })}
+      />
+      <TextField
+        label="Tax ID"
+        placeholder="Optional"
+        value={details.taxId}
+        onChange={(e) => change({ taxId: e.target.value })}
+      />
+      <TextAreaField
+        label="Address"
+        className="col-span-2 [&_textarea]:min-h-[2lh] [&_textarea]:field-sizing-content"
+        rows={2}
+        value={details.address}
+        onChange={(e) => change({ address: e.target.value })}
+      />
+    </div>
+  )
+}
+
+/** Resets this invoice's business details to Settings, or says they come from there. */
+export function BusinessSource() {
+  const { own, reset } = useBusinessDetails()
+  return own ? (
+    <button
+      type="button"
+      onClick={reset}
+      className="inline-flex items-center gap-1.5 rounded-full bg-tile-tile py-1.5 pr-3 pl-2.5 text-[13px] font-semibold text-tile-muted hover:bg-tile-tile-strong focus-visible:outline-2 focus-visible:outline-tile-accent"
+    >
+      <RotateCcw size={14} aria-hidden />
+      Use settings
+    </button>
+  ) : (
+    <Hint icon={Landmark}>From settings</Hint>
+  )
+}
+
+export function BusinessCard({ className }: { className?: string }) {
+  const { own } = useBusinessDetails()
+  return (
+    <Card title="Your business" className={className} action={<BusinessSource />}>
+      <BusinessFields />
+      {own && (
+        <p className="text-[13px] text-tile-muted">
+          Changed for this invoice only. Settings still has your defaults.
+        </p>
+      )}
     </Card>
   )
 }

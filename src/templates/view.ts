@@ -112,7 +112,11 @@ export function buildInvoiceView({
   const qtyFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 4 })
 
   // Sent invoices show what was frozen at send time; drafts show live data.
-  const business = { ...settings.business, ...invoice.businessSnapshot }
+  const business = {
+    ...settings.business,
+    ...invoice.businessOverride,
+    ...invoice.businessSnapshot,
+  }
   const party = invoice.clientSnapshot ?? client
 
   const dueIn = daysBetween(today, invoice.dueDate)
@@ -149,8 +153,8 @@ export function buildInvoiceView({
           taxId: party.taxId,
         }
       : null,
-    issued: formatDate(invoice.issueDate, settings.dateFormat),
-    due: formatDate(invoice.dueDate, settings.dateFormat),
+    issued: formatDate(invoice.issueDate, invoice.dateFormat),
+    due: formatDate(invoice.dueDate, invoice.dateFormat),
     dueNote,
     terms: TERM_LABELS[invoice.terms],
     reference: invoice.reference,

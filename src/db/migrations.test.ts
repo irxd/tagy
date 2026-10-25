@@ -161,3 +161,55 @@ describe('v3 → v4: databases on an earlier v3 get heading and body fonts', () 
     await Dexie.delete(name)
   })
 })
+
+describe('v4 → v5: invoices get their own date format and business details', () => {
+  it('upgrades the browser database', async () => {
+    const name = 'tagy-migrate-invoice-v5-test'
+    const old = new Dexie(name)
+    old.version(4).stores({
+      invoices: 'id, &number, status, clientId, issueDate, dueDate, updatedAt',
+      clients: 'id, name',
+      settings: 'key',
+      blobs: 'id',
+    })
+    await old.table('settings').put({ key: 'app', dateFormat: 'yyyy-MM-dd' })
+    await old.table('invoices').put({ id: 'i1', number: 'INV-0001' })
+    old.close()
+
+    const upgraded = new TagyDB(name)
+    expect(await upgraded.invoices.get('i1')).toEqual({
+      id: 'i1',
+      number: 'INV-0001',
+      dateFormat: 'yyyy-MM-dd',
+      businessOverride: null,
+    })
+    upgraded.close()
+    await Dexie.delete(name)
+  })
+
+  it('imports a v4 backup file', async () => {
+    await Promise.all(db.tables.map((t) => t.clear()))
+    await updateSettings({ dateFormat: 'MM/dd/yyyy' })
+    await createInvoice()
+    const v5 = await createBackup()
+    const v4 = {
+      ...v5,
+      schemaVersion: 4,
+      data: {
+        ...v5.data,
+        invoices: v5.data.invoices.map((inv) => {
+          const old: Partial<typeof inv> = { ...inv }
+          delete old.dateFormat
+          delete old.businessOverride
+          return old
+        }),
+      },
+    }
+    const { file } = parseBackup(JSON.stringify(v4))
+    expect(file.schemaVersion).toBe(SCHEMA_VERSION)
+    expect(file.data.invoices[0]).toMatchObject({
+      dateFormat: 'MM/dd/yyyy',
+      businessOverride: null,
+    })
+  })
+})

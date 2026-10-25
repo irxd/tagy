@@ -59,7 +59,8 @@ export function useEditorState(id: string): Editor | null | undefined {
   const taxPct = invoiceTaxPct(invoice)
   const totals = computeTotals({ items: invoice.items, discountPct: invoice.discountPct, taxPct })
   const money = (minor: number) => formatMoney(minor, invoice.currency, settings.locale)
-  const date = (iso: string, pattern = settings.dateFormat) => formatDate(iso, pattern)
+  // The invoice's own format, so its dates read here as they're printed.
+  const date = (iso: string, pattern = invoice.dateFormat) => formatDate(iso, pattern)
 
   function set(patch: InvoicePatch) {
     setEdits((e) => ({ ...e, ...patch }))

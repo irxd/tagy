@@ -14,7 +14,14 @@ import { printInvoice } from '@/features/print/printInvoice'
 import { MobileEditor } from './MobileEditor'
 import { useDownloadInvoice } from './useDownloadInvoice'
 import { PreviewPane } from './preview'
-import { DetailsFields, ItemsCard, NotesCard, PaymentCard, SummaryCard } from './sections'
+import {
+  BusinessCard,
+  DetailsFields,
+  ItemsCard,
+  NotesCard,
+  PaymentCard,
+  SummaryCard,
+} from './sections'
 import { HeroSummary, StatusMenu } from './StatusControls'
 import { EditorContext, useEditor, useEditorState } from './useEditor'
 
@@ -75,6 +82,7 @@ function DesktopEditor() {
             <NotesCard />
             <PaymentCard />
           </div>
+          <BusinessCard />
         </div>
         <PreviewPane
           expanded={previewOpen}
