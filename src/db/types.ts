@@ -28,6 +28,11 @@ export type NamedFont =
   | 'space-mono'
 /** `template` keeps each template's own type. */
 export type TemplateFont = 'template' | NamedFont
+/** Headings are each template's display type; body is everything else, figures included. */
+export interface TemplateFonts {
+  heading: TemplateFont
+  body: TemplateFont
+}
 export type Paper = 'a4' | 'letter'
 
 export interface LineItem {
@@ -128,7 +133,7 @@ export interface AppSettings {
   defaultTaxPct: number
   defaultTemplate: TemplateId
   accent: Accent
-  font: TemplateFont
+  fonts: TemplateFonts
   paper: Paper
   showFields: ShowFields
   defaultNotes: string

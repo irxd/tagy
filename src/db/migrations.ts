@@ -39,8 +39,13 @@ const FONTS_V2: Record<string, string> = {
   mono: 'geist-mono',
 }
 
-/** v2 → v3: the Font setting names a font instead of Sans, Serif or Mono. */
+/**
+ * v2 → v3: the Font setting becomes a named font for headings and one for
+ * body text, instead of one Sans, Serif or Mono choice.
+ */
 export function settingsV2toV3(settings: Raw): Raw {
-  const font = FONTS_V2[settings.font as string]
-  return font ? { ...settings, font } : settings
+  const { font, ...rest } = settings
+  if (font === undefined) return settings
+  const named = FONTS_V2[font as string] ?? 'template'
+  return { ...rest, fonts: { heading: named, body: named } }
 }

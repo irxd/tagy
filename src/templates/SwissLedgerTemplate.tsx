@@ -13,8 +13,7 @@ const RULE = '#D9D9D9'
  * at 416 px with 7.5 px text; sizes here are scaled to the 560 px page.
  */
 export function SwissLedgerTemplate({ view }: { view: InvoiceView }) {
-  const { text, figures } = templateFonts('minimal', view.font)
-  const num = { fontFamily: figures }
+  const { heading, body } = templateFonts('minimal', view.fonts)
   const b = view.business
   const c = view.client
   const rule = { borderTop: `0.5px solid ${RULE}` }
@@ -26,11 +25,14 @@ export function SwissLedgerTemplate({ view }: { view: InvoiceView }) {
         width: PAGE_WIDTH,
         minHeight: PAGE_HEIGHT[view.paper],
         color: INK,
-        fontFamily: text,
+        fontFamily: body,
       }}
     >
       <header className="flex justify-between gap-6">
-        <div className="min-w-0 text-[19px] leading-[1.2] tracking-[-0.15px] break-words whitespace-pre-line">
+        <div
+          className="min-w-0 text-[19px] leading-[1.2] tracking-[-0.15px] break-words whitespace-pre-line"
+          style={{ fontFamily: heading }}
+        >
           <div>{b.name || 'Your business'}</div>
           {view.show.taxId && b.taxId && <div>Tax ID: {b.taxId}</div>}
           {b.address && <div>{b.address}</div>}
@@ -49,15 +51,11 @@ export function SwissLedgerTemplate({ view }: { view: InvoiceView }) {
 
       <div className="mt-[35px] grid grid-cols-2">
         <Block label="Invoice">
-          <div>
-            Invoice no.: <span style={num}>{view.number}</span>
-          </div>
+          <div>Invoice no.: {view.number}</div>
           {view.reference && <div>Reference: {view.reference}</div>}
+          <div>Invoice date: {view.issued}</div>
           <div>
-            Invoice date: <span style={num}>{view.issued}</span>
-          </div>
-          <div>
-            Due date: <span style={num}>{view.due}</span>
+            Due date: {view.due}
             <span style={{ color: MUTED }}> · {view.dueNote}</span>
           </div>
           {view.paymentDetails && <div className="whitespace-pre-line">{view.paymentDetails}</div>}
@@ -107,27 +105,21 @@ export function SwissLedgerTemplate({ view }: { view: InvoiceView }) {
                   </span>
                 )}
               </td>
-              <td style={num}>{line.qty}</td>
-              <td className="text-right" style={num}>
-                {line.rate}
-              </td>
-              <td className="text-right" style={num}>
-                {line.amount}
-              </td>
+              <td>{line.qty}</td>
+              <td className="text-right">{line.rate}</td>
+              <td className="text-right">{line.amount}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
       <dl className="flex flex-col gap-1 pt-4 break-inside-avoid" style={rule}>
-        <Row label="Subtotal" value={view.subtotal} font={figures} />
-        {view.discount && (
-          <Row label={view.discount.label} value={view.discount.value} font={figures} />
-        )}
-        {view.tax && <Row label={view.tax.label} value={view.tax.value} font={figures} />}
+        <Row label="Subtotal" value={view.subtotal} />
+        {view.discount && <Row label={view.discount.label} value={view.discount.value} />}
+        {view.tax && <Row label={view.tax.label} value={view.tax.value} />}
         <div className="flex justify-between gap-3 font-semibold" style={{ color: view.accent }}>
           <dt>Total</dt>
-          <dd style={num}>{view.total}</dd>
+          <dd>{view.total}</dd>
         </div>
       </dl>
 
@@ -164,11 +156,11 @@ function Block({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-function Row({ label, value, font }: { label: string; value: string; font: string }) {
+function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-3">
       <dt>{label}</dt>
-      <dd style={{ fontFamily: font }}>{value}</dd>
+      <dd>{value}</dd>
     </div>
   )
 }

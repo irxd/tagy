@@ -18,6 +18,18 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 const money = z.number().int()
 const terms = z.enum(['receipt', 'net7', 'net14', 'net30'])
 const template = z.enum(['minimal', 'classic', 'bold', 'studio'])
+const font = z.enum([
+  'template',
+  'geist',
+  'inter-tight',
+  'dm-sans',
+  'newsreader',
+  'source-serif-4',
+  'instrument-serif',
+  'geist-mono',
+  'dm-mono',
+  'space-mono',
+])
 
 const lineItem = z.object({
   id: z.string(),
@@ -100,18 +112,7 @@ const settingsSchema: z.ZodType<AppSettings> = z.object({
   defaultTaxPct: z.number().min(0).max(100),
   defaultTemplate: template,
   accent: z.enum(['blue', 'ink', 'green', 'orange', 'pink', 'violet']),
-  font: z.enum([
-    'template',
-    'geist',
-    'inter-tight',
-    'dm-sans',
-    'newsreader',
-    'source-serif-4',
-    'instrument-serif',
-    'geist-mono',
-    'dm-mono',
-    'space-mono',
-  ]),
+  fonts: z.object({ heading: font, body: font }),
   paper: z.enum(['a4', 'letter']),
   showFields: z.object({
     logo: z.boolean(),

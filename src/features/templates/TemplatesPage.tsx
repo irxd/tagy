@@ -16,7 +16,7 @@ import type {
 } from '@/db/types'
 import { todayISO } from '@/domain/dates'
 import { TEMPLATE_LABELS } from '@/features/settings/options'
-import { FONT_LABELS, FONTS, TEMPLATE_FONTS } from '@/templates/fonts'
+import { FONT_LABELS, FONTS, TEMPLATE_FONTS, type FontRole } from '@/templates/fonts'
 import { InvoiceDocument } from '@/templates/InvoiceDocument'
 import { sampleInvoice } from '@/templates/sample'
 import { ACCENTS, buildInvoiceView, PAGE_WIDTH, type InvoiceView } from '@/templates/view'
@@ -67,7 +67,7 @@ function Templates({ settings }: { settings: AppSettings }) {
 
   function reset() {
     const d = defaultSettings()
-    save({ accent: d.accent, font: d.font, paper: d.paper, showFields: d.showFields })
+    save({ accent: d.accent, fonts: d.fonts, paper: d.paper, showFields: d.showFields })
     setPicked(settings.defaultTemplate)
   }
 
@@ -248,7 +248,10 @@ function Customizer({
   picked: TemplateId
   save: (patch: SettingsPatch) => void
 }) {
-  const own = TEMPLATE_FONTS[picked].text
+  const [role, setRole] = useState<FontRole>('heading')
+  const own = TEMPLATE_FONTS[picked][role]
+  const current = settings.fonts[role]
+  const pickFont = (font: TemplateFont) => save({ fonts: { ...settings.fonts, [role]: font } })
   return (
     <div className="flex flex-col gap-2.5">
       <Group title="Accent color">
@@ -272,14 +275,35 @@ function Customizer({
         </div>
       </Group>
       <Group title="Font">
-        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Font">
+        <div className="flex gap-1.5" role="radiogroup" aria-label="Font for">
+          {(['heading', 'body'] as FontRole[]).map((r) => (
+            <button
+              key={r}
+              type="button"
+              role="radio"
+              aria-checked={role === r}
+              onClick={() => setRole(r)}
+              className={cn(
+                'rounded-full py-2 pr-3 pl-3.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-tile-accent',
+                role === r ? 'bg-tile-fg text-white' : 'bg-tile-panel text-tile-fg',
+              )}
+            >
+              {r === 'heading' ? 'Heading' : 'Body'}
+            </button>
+          ))}
+        </div>
+        <div
+          className="grid grid-cols-3 gap-2"
+          role="radiogroup"
+          aria-label={role === 'heading' ? 'Heading font' : 'Body font'}
+        >
           <FontOption
             id="template"
             label="Template"
             detail={FONT_LABELS[own]}
             family={FONTS[own]}
-            selected={settings.font === 'template'}
-            onPick={(font) => save({ font })}
+            selected={current === 'template'}
+            onPick={pickFont}
           />
           {(Object.keys(FONT_LABELS) as NamedFont[]).map((f) => (
             <FontOption
@@ -287,8 +311,8 @@ function Customizer({
               id={f}
               label={FONT_LABELS[f]}
               family={FONTS[f]}
-              selected={settings.font === f}
-              onPick={(font) => save({ font })}
+              selected={current === f}
+              onPick={pickFont}
             />
           ))}
         </div>

@@ -76,7 +76,7 @@ describe('v1 → v2: tax moves onto each invoice', () => {
   })
 })
 
-describe('v2 → v3: the Font setting names a font', () => {
+describe('v2 → v3: the Font setting names a heading and a body font', () => {
   it('upgrades the browser database', async () => {
     const name = 'tagy-migrate-fonts-test'
     const old = new Dexie(name)
@@ -90,7 +90,10 @@ describe('v2 → v3: the Font setting names a font', () => {
     old.close()
 
     const upgraded = new TagyDB(name)
-    expect(await upgraded.settings.get('app')).toEqual({ key: 'app', font: 'newsreader' })
+    expect(await upgraded.settings.get('app')).toEqual({
+      key: 'app',
+      fonts: { heading: 'newsreader', body: 'newsreader' },
+    })
     upgraded.close()
     await Dexie.delete(name)
   })
@@ -99,6 +102,7 @@ describe('v2 → v3: the Font setting names a font', () => {
     await Promise.all(db.tables.map((t) => t.clear()))
     await updateSettings({ business: { name: 'Tagy Studio' } })
     const v3 = await createBackup()
+    const { fonts: _, ...settings } = v3.data.settings!
     for (const [old, font] of [
       ['sans', 'template'],
       ['serif', 'newsreader'],
@@ -107,11 +111,11 @@ describe('v2 → v3: the Font setting names a font', () => {
       const v2 = {
         ...v3,
         schemaVersion: 2,
-        data: { ...v3.data, settings: { ...v3.data.settings, font: old } },
+        data: { ...v3.data, settings: { ...settings, font: old } },
       }
       const { file } = parseBackup(JSON.stringify(v2))
       expect(file.schemaVersion).toBe(3)
-      expect(file.data.settings?.font).toBe(font)
+      expect(file.data.settings?.fonts).toEqual({ heading: font, body: font })
     }
   })
 })

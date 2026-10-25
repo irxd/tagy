@@ -20,14 +20,14 @@ const PAPER_PT = {
 interface Ctx {
   view: InvoiceView
   u: (px: number) => number
-  text: string
-  figures: string
+  heading: string
+  body: string
 }
 
 export function InvoicePdf({ view, template }: { view: InvoiceView; template: TemplateId }) {
   const paper = PAPER_PT[view.paper]
   const k = paper.w / PAGE_WIDTH
-  const fonts = pdfFonts(template, view.font)
+  const fonts = pdfFonts(template, view.fonts)
   const ctx: Ctx = { view, u: (px) => px * k, ...fonts }
   const Body = { minimal: SwissLedger, classic: Classic, bold: Bold, studio: Studio }[template]
   return (
@@ -93,7 +93,7 @@ function TotalsRows({
 /* ---------- Bold ---------- */
 
 function Bold(ctx: Ctx) {
-  const { view, u, text } = ctx
+  const { view, u, body: text } = ctx
   const INK = '#111111'
   const MUTED = '#6E6E73'
   const RULE = '#ECECEC'
@@ -347,20 +347,19 @@ function Signature({
 /* ---------- Swiss Ledger ---------- */
 
 function SwissLedger(ctx: Ctx) {
-  const { view, u, text, figures } = ctx
+  const { view, u, heading, body } = ctx
   const INK = '#111111'
   const MUTED = '#8A8A8A'
   const RULE = '#D9D9D9'
   const b = view.business
   const c = view.client
-  const num: Style = { fontFamily: figures }
   const rule: Style = { borderTopWidth: u(0.5), borderColor: RULE }
   const half: Style = { width: '50%', paddingRight: u(12) }
-  const cells = (qty: Style = {}): Style[] => [
+  const cells: Style[] = [
     half,
-    { width: u(54), ...qty },
-    { flex: 1, textAlign: 'right', ...qty },
-    { flex: 1, textAlign: 'right', ...qty },
+    { width: u(54) },
+    { flex: 1, textAlign: 'right' },
+    { flex: 1, textAlign: 'right' },
   ]
   const spacer = <View style={{ flexGrow: 1, minHeight: u(35) }} />
 
@@ -368,7 +367,7 @@ function SwissLedger(ctx: Ctx) {
     <Page
       size={PAPER_PT[view.paper].size}
       style={{
-        fontFamily: text,
+        fontFamily: body,
         color: INK,
         fontSize: u(10),
         lineHeight: 1.55,
@@ -379,7 +378,15 @@ function SwissLedger(ctx: Ctx) {
     >
       <View style={{ flexGrow: 1 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: u(24) }}>
-          <View style={{ flex: 1, fontSize: u(19), lineHeight: 1.2, letterSpacing: u(-0.15) }}>
+          <View
+            style={{
+              flex: 1,
+              fontFamily: heading,
+              fontSize: u(19),
+              lineHeight: 1.2,
+              letterSpacing: u(-0.15),
+            }}
+          >
             <T>{b.name || 'Your business'}</T>
             {view.show.taxId && b.taxId && <T>Tax ID: {b.taxId}</T>}
             {b.address && <T>{b.address}</T>}
@@ -408,15 +415,11 @@ function SwissLedger(ctx: Ctx) {
           <View style={{ ...half, gap: u(8) }}>
             <T style={{ fontWeight: 500 }}>Invoice</T>
             <View>
-              <T>
-                Invoice no.: <T style={num}>{view.number}</T>
-              </T>
+              <T>Invoice no.: {view.number}</T>
               {view.reference && <T>Reference: {view.reference}</T>}
+              <T>Invoice date: {view.issued}</T>
               <T>
-                Invoice date: <T style={num}>{view.issued}</T>
-              </T>
-              <T>
-                Due date: <T style={num}>{view.due}</T>
+                Due date: {view.due}
                 <T style={{ color: MUTED }}> · {view.dueNote}</T>
               </T>
               {view.paymentDetails && <T>{view.paymentDetails}</T>}
@@ -443,13 +446,13 @@ function SwissLedger(ctx: Ctx) {
         <View style={{ ...rule, paddingTop: u(16), paddingBottom: u(16) }}>
           <View fixed style={{ flexDirection: 'row', fontWeight: 500, paddingBottom: u(9) }}>
             {['Item', 'Qty', 'Rate', 'Amount'].map((h, i) => (
-              <T key={h} style={cells()[i]}>
+              <T key={h} style={cells[i]}>
                 {h}
               </T>
             ))}
           </View>
           {view.lines.map((line) => {
-            const [item, qty, rate, amount] = cells(num)
+            const [item, qty, rate, amount] = cells
             return (
               <View
                 key={line.id}
@@ -469,7 +472,7 @@ function SwissLedger(ctx: Ctx) {
         </View>
 
         <View wrap={false} style={{ ...rule, paddingTop: u(16), gap: u(4) }}>
-          <TotalsRows ctx={ctx} labelStyle={{}} valueStyle={num} />
+          <TotalsRows ctx={ctx} labelStyle={{}} valueStyle={{}} />
           <View
             style={{
               flexDirection: 'row',
@@ -479,7 +482,7 @@ function SwissLedger(ctx: Ctx) {
             }}
           >
             <T>Total</T>
-            <T style={num}>{view.total}</T>
+            <T>{view.total}</T>
           </View>
         </View>
 
@@ -517,7 +520,7 @@ function SwissLedger(ctx: Ctx) {
 /* ---------- Classic ---------- */
 
 function Classic(ctx: Ctx) {
-  const { view, u, text } = ctx
+  const { view, u, body: text } = ctx
   const INK = '#1F1B16'
   const MUTED = '#7A7268'
   const RULE = '#E4DED3'
@@ -697,7 +700,7 @@ function Classic(ctx: Ctx) {
 /* ---------- Studio ---------- */
 
 function Studio(ctx: Ctx) {
-  const { view, u, text, figures } = ctx
+  const { view, u, body: text, body: figures } = ctx
   const INK = '#16161A'
   const MUTED = '#74747C'
   const RAIL = '#F6F5F2'

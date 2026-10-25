@@ -9,7 +9,7 @@ const RULE = '#EBEAE6'
 
 /** Template/Studio — details in a side rail, items and total on the right. */
 export function StudioTemplate({ view }: { view: InvoiceView }) {
-  const { text, figures } = templateFonts('studio', view.font)
+  const { body: text, body: figures } = templateFonts('studio', view.fonts)
   const b = view.business
   const label = 'text-[8px] tracking-[0.8px] uppercase'
   const mono = { fontFamily: figures }

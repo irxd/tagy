@@ -1,4 +1,4 @@
-import type { Accent, AppSettings, Client, Invoice, Paper, TemplateFont } from '@/db/types'
+import type { Accent, AppSettings, Client, Invoice, Paper, TemplateFonts } from '@/db/types'
 import { daysBetween, formatDate } from '@/domain/dates'
 import { formatAmount, formatMoney } from '@/domain/money'
 import { displayStatus, type DisplayStatus } from '@/domain/status'
@@ -44,7 +44,7 @@ export interface InvoiceView {
   number: string
   status: DisplayStatus
   accent: string
-  font: TemplateFont
+  fonts: TemplateFonts
   paper: Paper
   business: {
     name: string
@@ -116,7 +116,7 @@ export function buildInvoiceView({
     number: invoice.number,
     status,
     accent: ACCENTS[settings.accent],
-    font: settings.font,
+    fonts: settings.fonts,
     paper: settings.paper,
     business: {
       name: business.name,

@@ -8,7 +8,7 @@ const PAPER = '#FFFDF8'
 
 /** Template/Classic — serif letterhead, double rules, italic labels. */
 export function ClassicTemplate({ view }: { view: InvoiceView }) {
-  const { text } = templateFonts('classic', view.font)
+  const { body: text } = templateFonts('classic', view.fonts)
   const b = view.business
   const accent = view.accent
   const italic = 'italic'

@@ -26,7 +26,7 @@ import sourceSerif700 from '@fontsource/source-serif-4/files/source-serif-4-lati
 import spaceMono400 from '@fontsource/space-mono/files/space-mono-latin-400-normal.woff?url'
 import spaceMono700 from '@fontsource/space-mono/files/space-mono-latin-700-normal.woff?url'
 import { Font } from '@react-pdf/renderer'
-import type { NamedFont, TemplateFont, TemplateId } from '@/db/types'
+import type { NamedFont, TemplateFonts, TemplateId } from '@/db/types'
 import { FONT_LABELS, fontIds } from '@/templates/fonts'
 
 /*
@@ -87,7 +87,7 @@ export function registerFonts() {
 }
 
 /** Same rule as the HTML templates (templates/fonts.ts). */
-export function pdfFonts(template: TemplateId, setting: TemplateFont) {
-  const { text, figures } = fontIds(template, setting)
-  return { text: FONT_LABELS[text], figures: FONT_LABELS[figures] }
+export function pdfFonts(template: TemplateId, fonts: TemplateFonts) {
+  const { heading, body } = fontIds(template, fonts)
+  return { heading: FONT_LABELS[heading], body: FONT_LABELS[body] }
 }

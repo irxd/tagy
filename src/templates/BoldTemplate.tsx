@@ -21,7 +21,7 @@ export function BoldTemplate({ view }: { view: InvoiceView }) {
         width: PAGE_WIDTH,
         minHeight: PAGE_HEIGHT[view.paper],
         color: INK,
-        fontFamily: templateFonts('bold', view.font).text,
+        fontFamily: templateFonts('bold', view.fonts).body,
       }}
     >
       <header
