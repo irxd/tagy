@@ -56,26 +56,31 @@ function DesktopEditor() {
   return (
     <div className="flex flex-col gap-6">
       <EditorHeader />
-      <section
-        aria-label="Invoice"
-        className="flex gap-6 rounded-tile-lg border border-tile-border p-5"
-      >
-        <div className="flex min-w-0 flex-1 flex-col gap-[26px]">
-          <HeroSummary onPreview={() => setPreviewOpen(true)} />
-          <div className="flex flex-col gap-3.5 px-1">
-            <h2 className="text-lg font-bold tracking-[-0.3px]">Details</h2>
-            <DetailsFields />
+      {/* One column of cards beside a preview that stays in view as the form scrolls. */}
+      <div className="flex items-start gap-6">
+        <div className="@container flex min-w-0 flex-1 flex-col gap-4">
+          <section
+            aria-label="Invoice"
+            className="flex flex-col gap-[26px] rounded-tile-lg border border-tile-border p-5"
+          >
+            <HeroSummary onPreview={() => setPreviewOpen(true)} />
+            <div className="flex flex-col gap-3.5 px-1">
+              <h2 className="text-lg font-bold tracking-[-0.3px]">Details</h2>
+              <DetailsFields />
+            </div>
+          </section>
+          <ItemsCard />
+          <SummaryCard />
+          <div className="grid items-start gap-4 @2xl:grid-cols-2">
+            <NotesCard />
+            <PaymentCard />
           </div>
         </div>
-        <PreviewPane expanded={previewOpen} onExpandedChange={setPreviewOpen} />
-      </section>
-      <div className="flex items-start gap-4">
-        <ItemsCard className="flex-1" />
-        <SummaryCard className="w-[400px] shrink-0" />
-      </div>
-      <div className="grid grid-cols-2 items-start gap-4">
-        <NotesCard />
-        <PaymentCard />
+        <PreviewPane
+          expanded={previewOpen}
+          onExpandedChange={setPreviewOpen}
+          className="sticky top-5"
+        />
       </div>
     </div>
   )
