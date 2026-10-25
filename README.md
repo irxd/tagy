@@ -26,7 +26,7 @@ Everything lives in the browser's IndexedDB on your device. There is no backend 
 
 ## What's next
 
-Planned for 0.3.0:
+Planned:
 
 - **Animation**: add motion to the interface, such as screen changes, sheets and dialogs, and status changes, and respect the system's reduced-motion setting.
 
