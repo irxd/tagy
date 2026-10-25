@@ -4,6 +4,7 @@ import {
   settingsV1toV2,
   settingsV2toV3,
   settingsV3toV4,
+  invoiceV4toV5,
   taxRatesV1,
 } from './migrations'
 import type { AppSettings, Client, Invoice, StoredBlob } from './types'
@@ -48,6 +49,17 @@ export class TagyDB extends Dexie {
       .upgrade(async (tx) => {
         const settings = await tx.table('settings').get('app')
         if (settings) await tx.table('settings').put(settingsV3toV4(settings))
+      })
+    this.version(5)
+      .stores({})
+      .upgrade(async (tx) => {
+        const settings = await tx.table('settings').get('app')
+        await tx
+          .table('invoices')
+          .toCollection()
+          .modify((invoice, ref) => {
+            ref.value = invoiceV4toV5(invoice, settings)
+          })
       })
   }
 }

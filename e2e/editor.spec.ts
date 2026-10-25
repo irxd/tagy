@@ -176,3 +176,45 @@ test('the back link returns to the overview', async ({ page }) => {
   await page.getByRole('link', { name: 'Back to overview' }).click()
   await expect(page).toHaveURL(/\/$/)
 })
+
+test('business details can change for one invoice and go back to settings', async ({ page }) => {
+  await openDesignInvoice(page)
+  const card = page.getByRole('region', { name: 'Your business' })
+  const invoice = page.getByRole('article', { name: 'Invoice INV-0042' })
+  await expect(card.getByText('From settings')).toBeVisible()
+  await card.getByLabel('Tax ID').fill('99-0000001')
+  await expect(invoice).toContainText('99-0000001')
+  await expect(card).toContainText('Changed for this invoice only')
+
+  // Navigate in the app (no reload), as leaving the editor saves pending edits.
+  await page.getByRole('link', { name: 'Settings' }).click()
+  await expect(page.getByLabel('Tax ID')).toHaveValue('47-3829105')
+  await page.goBack()
+  await card.getByRole('button', { name: 'Use settings' }).click()
+  await expect(invoice).toContainText('47-3829105')
+  await expect(invoice).not.toContainText('99-0000001')
+})
+
+test('each invoice has its own date format', async ({ page }) => {
+  await openDesignInvoice(page)
+  const invoice = page.getByRole('article', { name: 'Invoice INV-0042' })
+  await expect(invoice).toContainText('16 Oct, 2026')
+  await field(page, 'Date format').selectOption('yyyy-MM-dd')
+  await expect(invoice).toContainText('2026-10-16')
+  await expect(field(page, 'Issue date')).toBeVisible()
+  await expect(hero(page)).toContainText('2026-10-30')
+})
+
+test('the client can be edited from the invoice', async ({ page }) => {
+  await openDesignInvoice(page)
+  await hero(page).getByRole('button', { name: 'Edit', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Edit client' })
+  await expect(dialog.getByRole('button', { name: /Archive|Delete/ })).toHaveCount(0)
+  await dialog.getByLabel('Tax ID').fill('EU-123')
+  await dialog.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByRole('article', { name: 'Invoice INV-0042' })).toContainText('EU-123')
+
+  await page.goto('/clients')
+  await page.getByText('Northwind Studio').first().click()
+  await expect(page.getByLabel('Tax ID')).toHaveValue('EU-123')
+})

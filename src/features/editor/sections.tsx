@@ -15,7 +15,7 @@ import { isNumberTaken } from '@/db/invoices'
 import type { LineItem, PaymentTerms } from '@/db/types'
 import { dueDateFor } from '@/domain/dates'
 import { newLineItem, recentItems } from '@/domain/items'
-import { termOptions } from '@/features/settings/options'
+import { dateFormatOptions, termOptions } from '@/features/settings/options'
 import { Button } from '@/ui/Button'
 import { cn } from '@/ui/cn'
 import { MiniChip } from '@/ui/Chip'
@@ -24,6 +24,7 @@ import { DateField, SelectField, TextAreaField, TextField } from '@/ui/Field'
 import { Menu, MenuItem } from '@/ui/Menu'
 import { Checkbox, Toggle } from '@/ui/Toggle'
 import { DecimalInput, MoneyInput } from './inputs'
+import { useBusinessDetails } from './useBusinessDetails'
 import { useEditor } from './useEditor'
 
 /** Card frame used by the editor's Items, Summary, Notes and Payment details. */
@@ -64,8 +65,8 @@ function Hint({ icon: Icon, children }: { icon: typeof Eye; children: ReactNode 
   )
 }
 
-/** Details: number, dates, currency, terms, tax, discount, reference. */
-export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
+/** Details: number, dates, date format, currency, terms, tax, discount, reference. */
+export function DetailsFields({ columns = 3 }: { columns?: 2 | 3 }) {
   const { invoice, set, date } = useEditor()
   const [number, setNumber] = useState<string | null>(null)
   const [numberError, setNumberError] = useState<string | null>(null)
@@ -81,7 +82,9 @@ export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
   }
 
   return (
-    <div className={cn('grid gap-2.5', columns === 4 ? 'grid-cols-4' : 'grid-cols-2')}>
+    <div
+      className={cn('grid gap-2.5', columns === 3 ? 'grid-cols-2 @xl:grid-cols-3' : 'grid-cols-2')}
+    >
       <TextField
         label="Invoice no."
         value={number ?? invoice.number}
@@ -107,6 +110,7 @@ export function DetailsFields({ columns = 4 }: { columns?: 2 | 4 }) {
         min={invoice.issueDate}
         onChange={(e) => e.target.value && set({ dueDate: e.target.value })}
       />
+      <DateFormatField />
       <SelectField
         label="Currency"
         value={invoice.currency}
@@ -287,8 +291,9 @@ function ItemRow({
     'grid size-7 place-items-center rounded-full text-tile-muted hover:bg-tile-tile hover:text-tile-fg disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-tile-accent'
 
   return (
-    <li className="group flex items-center gap-3.5 border-b border-tile-border py-3.5 last:border-b-0">
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+    <li className="group flex flex-wrap items-center gap-x-3.5 gap-y-1.5 border-b border-tile-border py-3.5 last:border-b-0 @xl:flex-nowrap">
+      {/* The name takes its own line when the form is narrow. */}
+      <div className="flex min-w-0 flex-1 basis-full flex-col gap-0.5 @xl:basis-0">
         <input
           ref={titleRef}
           aria-label={`Item ${n} name`}
@@ -364,29 +369,32 @@ export function SummaryCard({ className }: { className?: string }) {
   const { invoice, totals, money, taxPct, set } = useEditor()
   return (
     <Card title="Summary" className={className}>
-      <div className="grid grid-cols-3 gap-2">
-        <Stat label="Subtotal" value={money(totals.subtotal)} />
-        <Stat
-          label="Discount"
-          value={totals.discount ? `−${money(totals.discount)}` : money(0)}
-          chip={invoice.discountPct ? <MiniChip>{invoice.discountPct}%</MiniChip> : undefined}
-        />
-        <Stat
-          label="Tax"
-          value={money(totals.tax)}
-          chip={taxPct ? <MiniChip>{taxPct}%</MiniChip> : undefined}
-        />
-      </div>
-      <div className="flex items-end justify-between rounded-tile-md bg-tile-fg px-4 py-3.5 text-white">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[13px] text-white/60">Total due</span>
-          <span className="text-2xl font-bold tracking-[-0.6px] tabular-nums">
-            {money(totals.total)}
-          </span>
+      {/* Stats and the total share a row once the form is wide enough. */}
+      <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-center">
+        <div className="grid flex-1 grid-cols-3 gap-2">
+          <Stat label="Subtotal" value={money(totals.subtotal)} />
+          <Stat
+            label="Discount"
+            value={totals.discount ? `−${money(totals.discount)}` : money(0)}
+            chip={invoice.discountPct ? <MiniChip>{invoice.discountPct}%</MiniChip> : undefined}
+          />
+          <Stat
+            label="Tax"
+            value={money(totals.tax)}
+            chip={taxPct ? <MiniChip>{taxPct}%</MiniChip> : undefined}
+          />
         </div>
-        <span className="text-[13px] font-semibold text-white/60">{invoice.currency}</span>
+        <div className="flex items-end justify-between rounded-tile-md bg-tile-fg px-4 py-3.5 text-white @2xl:w-[280px] @2xl:shrink-0">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[13px] text-white/60">Total due</span>
+            <span className="text-2xl font-bold tracking-[-0.6px] tabular-nums">
+              {money(totals.total)}
+            </span>
+          </div>
+          <span className="text-[13px] font-semibold text-white/60">{invoice.currency}</span>
+        </div>
       </div>
-      <div className="flex flex-col gap-3 px-0.5 pt-1">
+      <div className="flex flex-wrap gap-x-7 gap-y-3 px-0.5 pt-1">
         <Toggle
           checked={invoice.applyTax}
           disabled={!invoice.taxPct}
@@ -411,12 +419,100 @@ export function NotesCard({ className }: { className?: string }) {
     <Card title="Notes" className={className} action={<Hint icon={Eye}>On invoice</Hint>}>
       <TextAreaField
         label="Notes"
-        className="[&_label]:sr-only"
+        className="[&_label]:sr-only [&_textarea]:min-h-[2lh] [&_textarea]:field-sizing-content"
         rows={2}
         placeholder="e.g. Thank you for your business!"
         value={invoice.notes}
         onChange={(e) => set({ notes: e.target.value })}
       />
+    </Card>
+  )
+}
+
+/** The invoice's own date format, which its dates are printed in. */
+export function DateFormatField() {
+  const { invoice, set } = useEditor()
+  return (
+    <SelectField
+      label="Date format"
+      value={invoice.dateFormat}
+      options={dateFormatOptions()}
+      onChange={(e) => set({ dateFormat: e.target.value })}
+    />
+  )
+}
+
+/** Name, contacts, address and tax ID of the business, for this invoice. */
+export function BusinessFields() {
+  const { details, change } = useBusinessDetails()
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      <TextField
+        label="Business name"
+        className="col-span-2"
+        value={details.name}
+        onChange={(e) => change({ name: e.target.value })}
+      />
+      <TextField
+        label="Email"
+        type="email"
+        value={details.email}
+        onChange={(e) => change({ email: e.target.value })}
+      />
+      <TextField
+        label="Phone"
+        value={details.phone}
+        onChange={(e) => change({ phone: e.target.value })}
+      />
+      <TextField
+        label="Website"
+        value={details.website}
+        onChange={(e) => change({ website: e.target.value })}
+      />
+      <TextField
+        label="Tax ID"
+        placeholder="Optional"
+        value={details.taxId}
+        onChange={(e) => change({ taxId: e.target.value })}
+      />
+      <TextAreaField
+        label="Address"
+        className="col-span-2 [&_textarea]:min-h-[2lh] [&_textarea]:field-sizing-content"
+        rows={2}
+        value={details.address}
+        onChange={(e) => change({ address: e.target.value })}
+      />
+    </div>
+  )
+}
+
+/** Resets this invoice's business details to Settings, or says they come from there. */
+export function BusinessSource() {
+  const { own, reset } = useBusinessDetails()
+  return own ? (
+    <button
+      type="button"
+      onClick={reset}
+      className="inline-flex items-center gap-1.5 rounded-full bg-tile-tile py-1.5 pr-3 pl-2.5 text-[13px] font-semibold text-tile-muted hover:bg-tile-tile-strong focus-visible:outline-2 focus-visible:outline-tile-accent"
+    >
+      <RotateCcw size={14} aria-hidden />
+      Use settings
+    </button>
+  ) : (
+    <Hint icon={Landmark}>From settings</Hint>
+  )
+}
+
+export function BusinessCard({ className }: { className?: string }) {
+  const { own } = useBusinessDetails()
+  return (
+    <Card title="Your business" className={className} action={<BusinessSource />}>
+      <BusinessFields />
+      {own && (
+        <p className="text-[13px] text-tile-muted">
+          Changed for this invoice only. Settings still has your defaults.
+        </p>
+      )}
     </Card>
   )
 }
@@ -448,7 +544,7 @@ export function PaymentCard({ className }: { className?: string }) {
     >
       <TextAreaField
         label="Payment details"
-        className="[&_label]:sr-only"
+        className="[&_label]:sr-only [&_textarea]:min-h-[2lh] [&_textarea]:field-sizing-content"
         rows={3}
         placeholder="How should the client pay you? Add a default in Settings."
         value={invoice.paymentDetails}

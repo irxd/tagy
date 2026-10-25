@@ -22,7 +22,7 @@ import { Avatar } from '@/ui/Data'
 import { Menu, MenuDivider, MenuItem } from '@/ui/Menu'
 import { StatusSelect, StatusStepper, type StepProps } from '@/ui/Status'
 import { useToast } from '@/ui/toastContext'
-import { ClientPicker } from './ClientPicker'
+import { ClientPicker, EditClientOverlay } from './ClientPicker'
 import { useDownloadInvoice } from './useDownloadInvoice'
 import { useStatusChange } from './useStatusChange'
 import { useEditor } from './useEditor'
@@ -79,6 +79,7 @@ export function HeroSummary({ onPreview }: { onPreview: () => void }) {
   const { change, openPaid, dialog } = useStatusChange()
   const pdf = useDownloadInvoice()
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [clientFormOpen, setClientFormOpen] = useState(false)
   const navigate = useNavigate()
   const toast = useToast()
   const name = invoice.clientSnapshot?.name ?? client?.name
@@ -162,9 +163,16 @@ export function HeroSummary({ onPreview }: { onPreview: () => void }) {
         ) : (
           <span className="text-[15px] text-tile-muted">No client yet</span>
         )}
-        <Button icon={ArrowLeftRight} onClick={() => setPickerOpen(true)}>
-          {name ? 'Change' : 'Choose client'}
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          {client && (
+            <Button icon={PencilLine} onClick={() => setClientFormOpen(true)}>
+              Edit
+            </Button>
+          )}
+          <Button icon={ArrowLeftRight} onClick={() => setPickerOpen(true)}>
+            {name ? 'Change' : 'Choose client'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -220,6 +228,7 @@ export function HeroSummary({ onPreview }: { onPreview: () => void }) {
         </div>
       )}
 
+      <EditClientOverlay open={clientFormOpen} onOpenChange={setClientFormOpen} />
       <ClientPicker
         open={pickerOpen}
         onOpenChange={setPickerOpen}

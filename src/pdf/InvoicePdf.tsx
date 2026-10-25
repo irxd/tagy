@@ -57,11 +57,15 @@ function T({ style, children }: { style?: Style; children: ReactNode }) {
 
 const pick = <V,>(lines: (V | false | '' | null | undefined)[]) => lines.filter(Boolean) as V[]
 
-/** The business logo, or its initial in an accent circle when there's none. */
+/**
+ * The business logo, or its initial in an accent circle when there's none;
+ * nothing when the logo is turned off.
+ */
 function LogoMark({ ctx }: { ctx: Ctx }) {
   const { view, u } = ctx
   const b = view.business
-  if (view.show.logo && b.logoUrl)
+  if (!view.show.logo) return null
+  if (b.logoUrl)
     return <Image src={b.logoUrl} style={{ width: u(38), height: u(38), objectFit: 'contain' }} />
   return (
     <View

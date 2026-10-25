@@ -19,7 +19,13 @@ import { TEMPLATE_LABELS } from '@/features/settings/options'
 import { FONT_LABELS, FONTS, TEMPLATE_FONTS, type FontRole } from '@/templates/fonts'
 import { InvoiceDocument } from '@/templates/InvoiceDocument'
 import { sampleInvoice } from '@/templates/sample'
-import { ACCENTS, buildInvoiceView, PAGE_WIDTH, type InvoiceView } from '@/templates/view'
+import {
+  ACCENTS,
+  buildInvoiceView,
+  LOGO_TEMPLATES,
+  PAGE_WIDTH,
+  type InvoiceView,
+} from '@/templates/view'
 import { Button } from '@/ui/Button'
 import { cn } from '@/ui/cn'
 import { PageHeader } from '@/ui/PageHeader'
@@ -143,14 +149,25 @@ function Templates({ settings }: { settings: AppSettings }) {
   )
 }
 
-/** The most recently edited invoice, or the sample before any exist. */
+/**
+ * The most recently edited invoice that has a client and a named item, or
+ * the sample when none does — a blank draft makes a poor preview.
+ */
 function usePreviewView(settings: AppSettings): InvoiceView {
   const invoices = useInvoices()
-  const latest = invoices?.toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
+  const latest = invoices
+    ?.filter((inv) => inv.clientId && inv.items.some((item) => item.title.trim()))
+    .toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
   const client = useClient(latest?.clientId ?? undefined)
   const logoUrl = useBlobUrl(settings.business.logoBlobId)
   const source = latest ? { invoice: latest, client } : sampleInvoice(settings)
-  return buildInvoiceView({ ...source, settings, logoUrl, today: todayISO() })
+  const view = buildInvoiceView({ ...source, settings, logoUrl, today: todayISO() })
+  // Example tax IDs where none is set, so the Tax ID toggle visibly does something.
+  return {
+    ...view,
+    business: { ...view.business, taxId: view.business.taxId || '47-3829105' },
+    client: view.client && { ...view.client, taxId: view.client.taxId || 'EU372819465' },
+  }
 }
 
 function TemplateChooser({
@@ -338,15 +355,24 @@ function Customizer({
       </Group>
       <Group title="Show on invoice">
         <div className="flex flex-col gap-3 pt-1 pb-0.5">
-          {SHOW.map(({ key, label }) => (
-            <Toggle
-              key={key}
-              checked={settings.showFields[key]}
-              onCheckedChange={(v) => save({ showFields: { ...settings.showFields, [key]: v } })}
-            >
-              {label}
-            </Toggle>
-          ))}
+          {SHOW.map(({ key, label }) => {
+            const unused = key === 'logo' && !LOGO_TEMPLATES.includes(picked)
+            return (
+              <Toggle
+                key={key}
+                checked={settings.showFields[key] && !unused}
+                disabled={unused}
+                onCheckedChange={(v) => save({ showFields: { ...settings.showFields, [key]: v } })}
+              >
+                {label}
+                {unused && (
+                  <span className="block text-[13px] font-normal text-tile-muted">
+                    {TEMPLATE_LABELS[picked]} has no place for a logo
+                  </span>
+                )}
+              </Toggle>
+            )
+          })}
         </div>
       </Group>
     </div>

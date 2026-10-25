@@ -67,6 +67,8 @@ export function sampleInvoice(settings: AppSettings): { invoice: Invoice; client
     paidAt: null,
     paidMethod: '',
     paidNote: '',
+    dateFormat: settings.dateFormat,
+    businessOverride: null,
     clientSnapshot: null,
     businessSnapshot: settings.business.name
       ? null

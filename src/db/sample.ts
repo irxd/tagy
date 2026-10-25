@@ -106,6 +106,8 @@ export function generateSampleData(
       paidAt: status === 'paid' ? addDays(issueDate, 3 + Math.floor(rnd() * 10)) : null,
       paidMethod: status === 'paid' ? 'Bank transfer' : '',
       paidNote: '',
+      dateFormat: 'dd MMM, yyyy',
+      businessOverride: null,
       clientSnapshot: null,
       businessSnapshot: null,
       sample: true,

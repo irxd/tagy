@@ -45,6 +45,9 @@ export interface LineItem {
   rate: number
 }
 
+/** The business details printed on an invoice (not the logo or payment details). */
+export type BusinessDetails = Omit<Business, 'logoBlobId' | 'paymentDetails'>
+
 export interface Business {
   name: string
   /** Key into the `blobs` store, or null when no logo is set. */
@@ -89,9 +92,13 @@ export interface Invoice {
   paidAt: ISODate | null
   paidMethod: string
   paidNote: string
+  /** Date pattern for this invoice's dates, e.g. `dd MMM, yyyy`; Settings' when created. */
+  dateFormat: string
+  /** Business details edited on this invoice only, over the Settings ones; null follows Settings. */
+  businessOverride: Partial<BusinessDetails> | null
   /** Frozen when the invoice is marked Sent, so later edits elsewhere don't rewrite it. */
   clientSnapshot: ClientSnapshot | null
-  businessSnapshot: Omit<Business, 'logoBlobId' | 'paymentDetails'> | null
+  businessSnapshot: BusinessDetails | null
   /** Seeded by "Explore with sample data"; removed by its one-click clear. */
   sample?: boolean
   createdAt: ISODateTime

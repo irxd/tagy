@@ -37,8 +37,9 @@ export function ScaledPage({ view, zoom }: { view: InvoiceView; zoom: number }) 
 }
 
 /**
- * Live preview beside the form (desktop) — the top of the page, cropped to
- * the hero card's height, with an expand button for the full page.
+ * Live preview beside the form (desktop) — the whole page under its chips.
+ * It's kept to the window's height, so a long invoice scrolls inside it, and
+ * narrows on smaller screens to leave the form room.
  */
 export function PreviewPane({
   expanded,
@@ -50,17 +51,28 @@ export function PreviewPane({
   className?: string
 }) {
   const view = useInvoiceView()
+  const [ref, width] = useWidth<HTMLDivElement>()
   return (
     <div
       className={cn(
-        'relative flex w-[440px] shrink-0 justify-center overflow-hidden rounded-tile-lg bg-linear-to-b from-[#e9ecf1] to-[#dce1e8] pt-4',
+        'relative flex max-h-[calc(100dvh-40px)] w-[clamp(300px,31vw,440px)] shrink-0 flex-col overflow-hidden rounded-tile-lg bg-linear-to-b from-[#e9ecf1] to-[#dce1e8]',
         className,
       )}
     >
-      {/* Clicking the page opens the full preview; keyboard and screen-reader
-          users have the Expand button, so the page itself stays plain content. */}
-      <div onClick={() => onExpandedChange(true)} className="h-fit cursor-zoom-in">
-        <ScaledPage view={view} zoom={416 / PAGE_WIDTH} />
+      <div
+        ref={ref}
+        className="flex min-h-0 flex-1 justify-center overflow-y-auto px-3 pt-15 pb-3 [scrollbar-width:none]"
+      >
+        {/* Clicking the page opens the full preview; keyboard and screen-reader
+            users have the Expand button, so the page itself stays plain content. */}
+        {width > 0 && (
+          <div
+            onClick={() => onExpandedChange(true)}
+            className="h-fit cursor-zoom-in rounded-[4px] shadow-[0_10px_28px_#1a1f2b24]"
+          >
+            <ScaledPage view={view} zoom={width / PAGE_WIDTH} />
+          </div>
+        )}
       </div>
       <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1.5 text-xs font-semibold">
         <span className="size-[7px] rounded-full bg-tile-success" aria-hidden />

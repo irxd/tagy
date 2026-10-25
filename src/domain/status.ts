@@ -55,6 +55,7 @@ export function markSent(invoice: Invoice, ctx: SendContext): StatusPatch {
       address: business.address,
       taxId: business.taxId,
       website: business.website,
+      ...invoice.businessOverride,
     },
   }
 }

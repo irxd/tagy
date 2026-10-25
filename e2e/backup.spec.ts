@@ -24,7 +24,7 @@ test('export, clear everything, import the same file back', async ({ page }) => 
   expect(download.suggestedFilename()).toMatch(/^tagy-backup-\d{4}-\d{2}-\d{2}\.json$/)
   const path = (await download.path())!
   const file = JSON.parse(await readFile(path, 'utf8'))
-  expect(file).toMatchObject({ app: 'tagy', schemaVersion: 4 })
+  expect(file).toMatchObject({ app: 'tagy', schemaVersion: 5 })
   expect(file.data.invoices).toHaveLength(11)
   await expect(page.getByRole('region', { name: 'Data & backup' })).toContainText('Today')
 

@@ -55,3 +55,15 @@ export function settingsV2toV3(settings: Raw): Raw {
  * of v3 that kept one named `font` instead of heading and body `fonts`.
  */
 export const settingsV3toV4 = settingsV2toV3
+
+/**
+ * v4 → v5: each invoice gets its own date format, taken from Settings so it
+ * looks as it does now, and room for business details edited on it alone.
+ */
+export function invoiceV4toV5(invoice: Raw, settings: Raw | undefined): Raw {
+  return {
+    ...invoice,
+    dateFormat: invoice.dateFormat ?? settings?.dateFormat ?? 'dd MMM, yyyy',
+    businessOverride: invoice.businessOverride ?? null,
+  }
+}

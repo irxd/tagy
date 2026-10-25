@@ -74,6 +74,8 @@ test('delete asks first and offers undo', async ({ page }) => {
   await expect(page).toHaveURL('/')
   await expect(page.getByRole('status')).toContainText('INV-0004 deleted')
   await page.getByRole('status').getByRole('button', { name: 'Undo' }).click()
+  // Wait for the restore to be saved before opening it, or the editor finds nothing.
+  await expect(page.getByRole('link', { name: /INV-0004/ })).toBeVisible()
   await page.goto('/invoices/inv-4')
   await expect(page.getByRole('region', { name: 'Status' })).toBeVisible()
 })
@@ -85,4 +87,22 @@ test('review switches template and accent', async ({ page }) => {
   await expect(page.getByRole('radio', { name: 'green' })).toHaveAttribute('aria-checked', 'true')
   await page.getByRole('radio', { name: 'Serif Ledger' }).click()
   await expect(page.getByText('Serif Ledger · A4')).toBeVisible()
+})
+
+test('business details and date format can change on the invoice', async ({ page }) => {
+  await withDesignData(page)
+  await page.goto('/invoices/inv-42?step=client')
+  await expect(page.getByText('Bill to', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Edit your business' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Your business' })
+  await sheet.getByLabel('Tax ID').fill('99-0000001')
+  await sheet.getByRole('button', { name: 'Done' }).click()
+
+  await next(page, 'Details').click()
+  await field(page, 'Date format').selectOption('yyyy-MM-dd')
+  await next(page, 'Items').click()
+  await next(page, 'Review').click()
+  const invoice = page.getByRole('article', { name: 'Invoice INV-0042' })
+  await expect(invoice).toContainText('99-0000001')
+  await expect(invoice).toContainText('2026-10-16')
 })
