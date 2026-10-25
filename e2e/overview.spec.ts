@@ -104,13 +104,20 @@ test('the list pages through invoices and remembers the page size', async ({ pag
   await page.getByRole('button', { name: 'Explore with sample data' }).click()
   const list = page.getByRole('region', { name: 'Invoices' })
   await expect(list.getByRole('listitem')).toHaveCount(10)
-  await expect(list).toContainText('1–10 of 41')
+  // How many sample invoices fall in the period depends on today's date,
+  // so read the total from the All filter instead of fixing it.
+  const total = Number(
+    (await list.getByRole('button', { name: /^All/ }).textContent())!.match(/\d+/)![0],
+  )
+  const pages = Math.ceil(total / 10)
+  expect(pages).toBeGreaterThan(2)
+  await expect(list).toContainText(`1–10 of ${total}`)
 
   await list.getByRole('button', { name: 'Next page' }).click()
-  await expect(list).toContainText('11–20 of 41')
+  await expect(list).toContainText(`11–20 of ${total}`)
   if (!isMobile) {
-    await list.getByRole('button', { name: 'Page 5' }).click()
-    await expect(list).toContainText('41–41 of 41')
+    await list.getByRole('button', { name: `Page ${pages}` }).click()
+    await expect(list).toContainText(`${(pages - 1) * 10 + 1}–${total} of ${total}`)
     await expect(list.getByRole('button', { name: 'Next page' })).toBeDisabled()
   }
 
@@ -127,5 +134,5 @@ test('the list pages through invoices and remembers the page size', async ({ pag
   await list.getByLabel('Invoices per page').selectOption('25')
   await expect(list.getByRole('listitem')).toHaveCount(25)
   await page.reload()
-  await expect(list).toContainText('1–25 of 41')
+  await expect(list).toContainText(`1–25 of ${total}`)
 })
