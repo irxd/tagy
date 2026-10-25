@@ -19,7 +19,7 @@ export const FONTS = {
 
 /** Each template's own type, from tagy.pen: text and figures. */
 const TEMPLATE_FONTS: Record<TemplateId, { text: string; figures: string }> = {
-  minimal: { text: FONTS.geist, figures: FONTS.geistMono },
+  minimal: { text: FONTS.geist, figures: FONTS.geist },
   classic: { text: FONTS.newsreader, figures: FONTS.newsreader },
   bold: { text: FONTS.interTight, figures: FONTS.interTight },
   studio: { text: FONTS.dmSans, figures: FONTS.dmMono },

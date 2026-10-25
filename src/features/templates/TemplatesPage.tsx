@@ -20,7 +20,7 @@ import { useLayout } from '@/ui/useLayout'
 
 const TEMPLATE_IDS = Object.keys(TEMPLATE_LABELS) as TemplateId[]
 const DESCRIPTIONS: Record<TemplateId, string> = {
-  minimal: 'Ink on paper, mono figures',
+  minimal: 'Big sender masthead, hairline grid',
   classic: 'Serif letterhead, double rules',
   bold: 'Accent band leads with the total',
   studio: 'Details in a side rail',

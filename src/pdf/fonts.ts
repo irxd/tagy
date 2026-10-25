@@ -78,7 +78,7 @@ export function registerFonts() {
 }
 
 const OWN: Record<TemplateId, { text: string; figures: string }> = {
-  minimal: { text: 'Geist', figures: 'Geist Mono' },
+  minimal: { text: 'Geist', figures: 'Geist' },
   classic: { text: 'Newsreader', figures: 'Newsreader' },
   bold: { text: 'Inter Tight', figures: 'Inter Tight' },
   studio: { text: 'DM Sans', figures: 'DM Mono' },
