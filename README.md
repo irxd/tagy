@@ -8,7 +8,7 @@ A free invoice maker that runs entirely in your browser. No account, no server, 
 
 - **Invoices**: add items, discount and tax, and see the totals and a live preview of the page as you type. Every change saves automatically.
 - **Statuses**: move an invoice from Draft to Sent to Paid. Tagy flags it as Overdue once the due date passes. Each change can be undone.
-- **Templates**: four designs (Minimal, Classic, Bold, Studio) with a choice of accent colour, font and paper size (A4 or US Letter).
+- **Templates**: four designs (Swiss Ledger, Serif Ledger, Editorial Mono, Ruled Index) with a choice of accent colour, heading and body fonts, and paper size (A4 or US Letter).
 - **PDF and print**: download a real PDF, made in the browser, or print straight from the page.
 - **Clients**: save a client once and pick them on the next invoice. Each client shows what they've been billed and what's still unpaid.
 - **Overview**: totals for a period, a monthly chart, search and filters. Exports to CSV for your accountant.
@@ -28,7 +28,6 @@ Everything lives in the browser's IndexedDB on your device. There is no backend 
 
 Planned for 0.3.0:
 
-- **New template designs**: rework all four templates (Minimal, Classic, Bold, Studio), in both the HTML preview and the PDF.
 - **Animation**: add motion to the interface, such as screen changes, sheets and dialogs, and status changes, and respect the system's reduced-motion setting.
 
 ## How it's built
