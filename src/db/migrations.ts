@@ -46,6 +46,12 @@ const FONTS_V2: Record<string, string> = {
 export function settingsV2toV3(settings: Raw): Raw {
   const { font, ...rest } = settings
   if (font === undefined) return settings
-  const named = FONTS_V2[font as string] ?? 'template'
+  const named = FONTS_V2[font as string] ?? (typeof font === 'string' ? font : 'template')
   return { ...rest, fonts: { heading: named, body: named } }
 }
+
+/**
+ * v3 → v4: the same step again, for databases upgraded by an earlier build
+ * of v3 that kept one named `font` instead of heading and body `fonts`.
+ */
+export const settingsV3toV4 = settingsV2toV3

@@ -1,7 +1,13 @@
 import { z } from 'zod'
 import { base64ToBlob, blobToBase64 } from '@/lib/base64'
 import { db } from './db'
-import { invoiceV1toV2, settingsV1toV2, settingsV2toV3, taxRatesV1 } from './migrations'
+import {
+  invoiceV1toV2,
+  settingsV1toV2,
+  settingsV2toV3,
+  settingsV3toV4,
+  taxRatesV1,
+} from './migrations'
 import type { AppSettings, Client, Invoice, StoredBlob } from './types'
 
 /*
@@ -10,7 +16,7 @@ import type { AppSettings, Client, Invoice, StoredBlob } from './types'
  * replaces all data in one transaction — a failed import changes nothing.
  */
 
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 export class BackupError extends Error {}
 
@@ -161,6 +167,10 @@ const migrations: Record<number, (data: unknown) => unknown> = {
   2: (data) => {
     const d = data as { settings?: Record<string, unknown> | null }
     return { ...d, settings: d.settings ? settingsV2toV3(d.settings) : d.settings }
+  },
+  3: (data) => {
+    const d = data as { settings?: Record<string, unknown> | null }
+    return { ...d, settings: d.settings ? settingsV3toV4(d.settings) : d.settings }
   },
 }
 
