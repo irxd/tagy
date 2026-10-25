@@ -18,7 +18,7 @@ export const termOptions: SelectOption[] = (Object.keys(TERM_LABELS) as PaymentT
 export const TEMPLATE_LABELS: Record<TemplateId, string> = {
   minimal: 'Swiss Ledger',
   classic: 'Serif Ledger',
-  bold: 'Bold',
+  bold: 'Ruled Index',
   studio: 'Editorial Mono',
 }
 

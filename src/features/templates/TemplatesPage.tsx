@@ -31,7 +31,7 @@ const TEMPLATE_IDS = Object.keys(TEMPLATE_LABELS) as TemplateId[]
 const DESCRIPTIONS: Record<TemplateId, string> = {
   minimal: 'Big sender masthead, hairline grid',
   classic: 'Bookish serif in one ruled box',
-  bold: 'Accent band leads with the total',
+  bold: 'Full-width ruled rows, grey service band',
   studio: 'Poster serif title over typewriter mono',
 }
 const SHOW: { key: keyof ShowFields; label: string }[] = [

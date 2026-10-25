@@ -78,6 +78,11 @@ describe('buildInvoiceView', () => {
     expect(view({ status: 'paid', paidAt: null }).dueNote).toBe('Paid')
   })
 
+  it('labels the payment terms', () => {
+    expect(view({ terms: 'net30' }).terms).toBe('Net 30')
+    expect(view({ terms: 'receipt' }).terms).toBe('On receipt')
+  })
+
   it('uses the snapshots of a sent invoice', () => {
     const v = view({
       clientSnapshot: { name: 'Old Name', contact: '', email: '', address: '', taxId: '' },
