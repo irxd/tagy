@@ -58,3 +58,17 @@ test('customisation saves right away and shows in the preview', async ({ page })
   await expect(page.getByRole('radio', { name: 'A4' })).toHaveAttribute('aria-checked', 'true')
   await expect(preview).not.toContainText('Authorized signature')
 })
+
+test('the logo toggle is turned off for templates without a logo', async ({ page }) => {
+  await page.goto('/templates')
+  const logo = page.getByRole('switch', { name: /Business logo/ })
+  await page.getByRole('radio', { name: 'Swiss Ledger' }).click()
+  await expect(logo).toBeEnabled()
+  await logo.click()
+  await expect(logo).not.toBeChecked()
+  await logo.click()
+
+  await page.getByRole('radio', { name: 'Ruled Index' }).click()
+  await expect(logo).toBeDisabled()
+  await expect(page.getByText('Ruled Index has no place for a logo')).toBeVisible()
+})

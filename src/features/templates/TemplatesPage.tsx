@@ -19,7 +19,13 @@ import { TEMPLATE_LABELS } from '@/features/settings/options'
 import { FONT_LABELS, FONTS, TEMPLATE_FONTS, type FontRole } from '@/templates/fonts'
 import { InvoiceDocument } from '@/templates/InvoiceDocument'
 import { sampleInvoice } from '@/templates/sample'
-import { ACCENTS, buildInvoiceView, PAGE_WIDTH, type InvoiceView } from '@/templates/view'
+import {
+  ACCENTS,
+  buildInvoiceView,
+  LOGO_TEMPLATES,
+  PAGE_WIDTH,
+  type InvoiceView,
+} from '@/templates/view'
 import { Button } from '@/ui/Button'
 import { cn } from '@/ui/cn'
 import { PageHeader } from '@/ui/PageHeader'
@@ -343,15 +349,24 @@ function Customizer({
       </Group>
       <Group title="Show on invoice">
         <div className="flex flex-col gap-3 pt-1 pb-0.5">
-          {SHOW.map(({ key, label }) => (
-            <Toggle
-              key={key}
-              checked={settings.showFields[key]}
-              onCheckedChange={(v) => save({ showFields: { ...settings.showFields, [key]: v } })}
-            >
-              {label}
-            </Toggle>
-          ))}
+          {SHOW.map(({ key, label }) => {
+            const unused = key === 'logo' && !LOGO_TEMPLATES.includes(picked)
+            return (
+              <Toggle
+                key={key}
+                checked={settings.showFields[key] && !unused}
+                disabled={unused}
+                onCheckedChange={(v) => save({ showFields: { ...settings.showFields, [key]: v } })}
+              >
+                {label}
+                {unused && (
+                  <span className="block text-[13px] font-normal text-tile-muted">
+                    {TEMPLATE_LABELS[picked]} has no place for a logo
+                  </span>
+                )}
+              </Toggle>
+            )
+          })}
         </div>
       </Group>
     </div>

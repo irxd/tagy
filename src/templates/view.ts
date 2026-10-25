@@ -1,4 +1,12 @@
-import type { Accent, AppSettings, Client, Invoice, Paper, TemplateFonts } from '@/db/types'
+import type {
+  Accent,
+  AppSettings,
+  Client,
+  Invoice,
+  Paper,
+  TemplateFonts,
+  TemplateId,
+} from '@/db/types'
 import { daysBetween, formatDate, TERM_LABELS } from '@/domain/dates'
 import { formatAmount, formatMoney } from '@/domain/money'
 import { displayStatus, type DisplayStatus } from '@/domain/status'
@@ -20,6 +28,9 @@ export const ACCENTS: Record<Accent, string> = {
  * ~10.5 pt, a normal invoice size. Measurements inside templates keep the
  * design's values; the extra width goes to flexible areas.
  */
+/** Templates with a place for the business logo; the others leave it off. */
+export const LOGO_TEMPLATES: readonly TemplateId[] = ['minimal', 'classic']
+
 export const PAGE_WIDTH = 560
 /** Page height at PAGE_WIDTH, per paper size. */
 export const PAGE_HEIGHT: Record<Paper, number> = {
@@ -167,7 +178,7 @@ export function buildInvoiceView({
         ? invoice.paymentDetails.trim()
         : null,
     show: {
-      logo: settings.showFields.logo && !!logoUrl,
+      logo: settings.showFields.logo,
       taxId: settings.showFields.taxId,
       signature: settings.showFields.signature,
     },
