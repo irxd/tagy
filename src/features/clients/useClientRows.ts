@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useClients, useInvoices, useSettings } from '@/db/hooks'
 import type { AppSettings, Client, Invoice } from '@/db/types'
-import { clientStats, type ClientStats } from '@/domain/clients'
+import { clientStats, resolveClientCurrency, type ClientStats } from '@/domain/clients'
 import { todayISO } from '@/domain/dates'
 
 export interface ClientRow {
@@ -31,8 +31,9 @@ export function useClientRows(): ClientsData | undefined {
     }
     const today = todayISO()
     const rows = clients.map((client) => {
-      const currency = client.currency ?? settings.currency
-      const stats = clientStats(byClient.get(client.id) ?? [], currency, today)
+      const clientInvoices = byClient.get(client.id) ?? []
+      const currency = resolveClientCurrency(client, clientInvoices, settings.currency)
+      const stats = clientStats(clientInvoices, currency, today)
       return { client, stats, currency }
     })
     return { rows, settings }
@@ -46,7 +47,14 @@ export function filterRows(rows: ClientRow[], filter: ClientFilter): ClientRow[]
     case 'all':
       return rows.filter((r) => !r.client.archived)
     case 'unpaid':
-      return rows.filter((r) => !r.client.archived && r.stats.unpaid > 0)
+      return rows.filter(
+        (r) =>
+          !r.client.archived &&
+          (r.stats.unpaid > 0 ||
+            r.stats.otherCurrencies.some((c) => c.unpaid > 0) ||
+            r.stats.hint === 'unpaid' ||
+            r.stats.hint === 'overdue'),
+      )
     case 'archived':
       return rows.filter((r) => r.client.archived)
   }

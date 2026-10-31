@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Client, Invoice } from '@/db/types'
-import { clientStats, matchesClient } from './clients'
+import { clientStats, matchesClient, resolveClientCurrency } from './clients'
 import { invoiceTaxPct, invoiceTotal } from './totals'
 
 const today = '2026-10-18'
@@ -49,7 +49,35 @@ describe('clientStats', () => {
       overdue: 10_000,
       lastIssueDate: '2026-10-16',
       hint: 'overdue',
+      otherCurrencies: [],
+      currencies: ['USD'],
     })
+  })
+
+  it('tracks other currencies for multi-currency clients', () => {
+    const stats = clientStats(
+      [
+        inv({
+          status: 'sent',
+          currency: 'MYR',
+          items: [{ id: '1', title: 'Work', description: '', qty: 1, rate: 50_000 }],
+        }),
+        inv({
+          status: 'sent',
+          currency: 'IDR',
+          items: [{ id: '2', title: 'Work', description: '', qty: 1, rate: 2_000_000 }],
+        }),
+      ],
+      'MYR',
+      today,
+    )
+    expect(stats.billed).toBe(50_000)
+    expect(stats.unpaid).toBe(50_000)
+    expect(stats.currencies).toEqual(['MYR', 'IDR'])
+    expect(stats.otherCurrencies).toEqual([
+      { currency: 'IDR', billed: 2_000_000, unpaid: 2_000_000, overdue: 0 },
+    ])
+    expect(stats.hint).toBe('unpaid')
   })
 
   it('leaves drafts and other currencies out of the amounts', () => {
@@ -58,13 +86,52 @@ describe('clientStats', () => {
       'USD',
       today,
     )
-    expect(stats).toMatchObject({ invoiceCount: 2, billed: 0, unpaid: 0, hint: 'draft' })
+    expect(stats).toMatchObject({ invoiceCount: 2, billed: 0, unpaid: 0, hint: 'unpaid' })
+  })
+
+  it('identifies overdue or unpaid invoices even in another currency', () => {
+    expect(clientStats([inv({ status: 'sent', currency: 'IDR' })], 'MYR', today).hint).toBe('unpaid')
+    expect(
+      clientStats([inv({ status: 'sent', dueDate: '2026-10-10', currency: 'IDR' })], 'MYR', today)
+        .hint,
+    ).toBe('overdue')
   })
 
   it('picks the hint by priority', () => {
     expect(clientStats([inv({ status: 'sent' })], 'USD', today).hint).toBe('unpaid')
     expect(clientStats([inv({ status: 'paid' })], 'USD', today).hint).toBe('paid')
     expect(clientStats([], 'USD', today)).toMatchObject({ hint: 'new', lastIssueDate: null })
+  })
+})
+
+describe('resolveClientCurrency', () => {
+  it('uses client currency if set and matching', () => {
+    const client = { currency: 'EUR' }
+    expect(resolveClientCurrency(client, [inv({ currency: 'EUR' })], 'USD')).toBe('EUR')
+  })
+
+  it('uses invoice currency if client currency is null', () => {
+    const client = { currency: null }
+    expect(resolveClientCurrency(client, [inv({ currency: 'IDR' })], 'MYR')).toBe('IDR')
+  })
+
+  it('falls back to invoice currency if client currency has no matching invoices', () => {
+    const client = { currency: 'MYR' }
+    expect(resolveClientCurrency(client, [inv({ currency: 'IDR' })], 'MYR')).toBe('IDR')
+  })
+
+  it('falls back to default currency if no invoices and client currency is null', () => {
+    const client = { currency: null }
+    expect(resolveClientCurrency(client, [], 'MYR')).toBe('MYR')
+  })
+
+  it('prefers unpaid invoice currency when available', () => {
+    const client = { currency: null }
+    const invoices = [
+      inv({ status: 'paid', currency: 'MYR', issueDate: '2026-10-20' }),
+      inv({ status: 'sent', currency: 'IDR', issueDate: '2026-10-15' }),
+    ]
+    expect(resolveClientCurrency(client, invoices, 'MYR')).toBe('IDR')
   })
 })
 
