@@ -105,7 +105,10 @@ export function RuledIndexTemplate({ view }: { view: InvoiceView }) {
           <Row label="Subtotal" value={view.subtotal} />
           {view.discount && <Row label={view.discount.label} value={view.discount.value} />}
           {view.tax && <Row label={view.tax.label} value={view.tax.value} />}
-          <div className="flex justify-between gap-3 pt-1" style={{ color: view.accent }}>
+          <div
+            className="flex justify-between gap-3 pt-1 text-[16px] font-semibold"
+            style={{ color: view.accent }}
+          >
             <dt>Total</dt>
             <dd>{view.total}</dd>
           </div>
@@ -119,10 +122,7 @@ export function RuledIndexTemplate({ view }: { view: InvoiceView }) {
           <dt>Invoice issued</dt>
           <dd>{view.issued}</dd>
           <dt>Due date</dt>
-          <dd>
-            {view.due}
-            <span style={{ color: MUTED }}> · {view.dueNote}</span>
-          </dd>
+          <dd>{view.due}</dd>
         </dl>
         <div className="flex flex-col">
           {view.notes && <span className="whitespace-pre-line">{view.notes}</span>}
