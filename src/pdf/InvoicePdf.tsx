@@ -221,6 +221,8 @@ function RuledIndex(ctx: Ctx) {
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 paddingTop: u(4),
+                fontSize: u(16),
+                fontWeight: 600,
                 color: view.accent,
               }}
             >
@@ -244,10 +246,7 @@ function RuledIndex(ctx: Ctx) {
             .concat(
               <View key="due" style={{ flexDirection: 'row' }}>
                 <T style={{ width: u(118) }}>Due date</T>
-                <T>
-                  {view.due}
-                  <T style={{ color: MUTED }}> · {view.dueNote}</T>
-                </T>
+                <T>{view.due}</T>
               </View>,
             ),
           <>
