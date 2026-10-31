@@ -79,21 +79,22 @@ export function clientStats(invoices: Invoice[], currency: string, today: ISODat
     }
   }
 
-  const hint: ClientHint =
-    hasOverdue
-      ? 'overdue'
-      : hasUnpaid
-        ? 'unpaid'
-        : hasDraft
-          ? 'draft'
-          : invoices.length > 0
-            ? 'paid'
-            : 'new'
+  const hint: ClientHint = hasOverdue
+    ? 'overdue'
+    : hasUnpaid
+      ? 'unpaid'
+      : hasDraft
+        ? 'draft'
+        : invoices.length > 0
+          ? 'paid'
+          : 'new'
 
-  const currencies = currencySet.size > 0 ? Array.from(currencySet) : [currency]
-  if (currencies.includes(currency)) {
-    currencies.sort((a, b) => (a === currency ? -1 : b === currency ? 1 : a.localeCompare(b)))
-  }
+  const currencies =
+    currencySet.size === 0
+      ? [currency]
+      : currencySet.has(currency)
+        ? [currency, ...Array.from(currencySet).filter((c) => c !== currency)]
+        : Array.from(currencySet)
 
   const otherCurrencies = Array.from(otherMap.values())
 
@@ -127,14 +128,9 @@ export function resolveClientCurrency(
     }
   }
   if (invoices.length > 0) {
-    const sorted = [...invoices].sort(
-      (a, b) =>
-        b.issueDate.localeCompare(a.issueDate) ||
-        (b.createdAt ?? '').localeCompare(a.createdAt ?? ''),
-    )
+    const sorted = [...invoices].sort((a, b) => b.issueDate.localeCompare(a.issueDate))
     const unpaid = sorted.find((inv) => inv.status === 'sent')
-    if (unpaid) return unpaid.currency
-    return sorted[0]!.currency
+    return unpaid ? unpaid.currency : sorted[0]!.currency
   }
   return client.currency ?? defaultCurrency
 }

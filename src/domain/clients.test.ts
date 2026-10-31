@@ -90,16 +90,35 @@ describe('clientStats', () => {
   })
 
   it('identifies overdue or unpaid invoices even in another currency', () => {
-    expect(clientStats([inv({ status: 'sent', currency: 'IDR' })], 'MYR', today).hint).toBe('unpaid')
+    expect(clientStats([inv({ status: 'sent', currency: 'IDR' })], 'MYR', today).hint).toBe(
+      'unpaid',
+    )
     expect(
       clientStats([inv({ status: 'sent', dueDate: '2026-10-10', currency: 'IDR' })], 'MYR', today)
         .hint,
     ).toBe('overdue')
   })
 
+  it('tracks paid and overdue invoices in other currencies', () => {
+    const stats = clientStats(
+      [
+        inv({ status: 'paid', currency: 'EUR' }),
+        inv({ status: 'sent', dueDate: '2026-10-10', currency: 'GBP' }),
+      ],
+      'USD',
+      today,
+    )
+    expect(stats.otherCurrencies).toEqual([
+      { currency: 'EUR', billed: 10_000, unpaid: 0, overdue: 0 },
+      { currency: 'GBP', billed: 10_000, unpaid: 10_000, overdue: 10_000 },
+    ])
+    expect(stats.currencies).toEqual(['EUR', 'GBP'])
+  })
+
   it('picks the hint by priority', () => {
     expect(clientStats([inv({ status: 'sent' })], 'USD', today).hint).toBe('unpaid')
     expect(clientStats([inv({ status: 'paid' })], 'USD', today).hint).toBe('paid')
+    expect(clientStats([inv({ status: 'draft' })], 'USD', today).hint).toBe('draft')
     expect(clientStats([], 'USD', today)).toMatchObject({ hint: 'new', lastIssueDate: null })
   })
 })
@@ -123,6 +142,15 @@ describe('resolveClientCurrency', () => {
   it('falls back to default currency if no invoices and client currency is null', () => {
     const client = { currency: null }
     expect(resolveClientCurrency(client, [], 'MYR')).toBe('MYR')
+  })
+
+  it('uses latest invoice currency when all invoices are paid', () => {
+    const client = { currency: null }
+    const invoices = [
+      inv({ status: 'paid', currency: 'USD', issueDate: '2026-10-10' }),
+      inv({ status: 'paid', currency: 'EUR', issueDate: '2026-10-20' }),
+    ]
+    expect(resolveClientCurrency(client, invoices, 'MYR')).toBe('EUR')
   })
 
   it('prefers unpaid invoice currency when available', () => {

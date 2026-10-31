@@ -88,11 +88,7 @@ export function ClientCard({ row, locale, selected, onOpen }: ViewProps) {
           subValue={unpaidSub}
           tone={hasAnyOverdue ? 'danger' : hasAnyUnpaid ? 'fg' : 'subtle'}
         />
-        <Figure
-          value={billedDisplay}
-          label="Total billed"
-          subValue={billedSub}
-        />
+        <Figure value={billedDisplay} label="Total billed" subValue={billedSub} />
       </span>
       <span className="grid grid-cols-3 gap-2">
         <Tile label="Invoices" value={String(stats.invoiceCount)} />
@@ -142,7 +138,9 @@ function Tile({ label, value }: { label: string; value: string }) {
   return (
     <span className="flex min-w-0 flex-col gap-1 rounded-tile-md bg-tile-tile pt-2.5 pr-2.5 pb-3 pl-3">
       <span className="text-[13px] text-tile-muted">{label}</span>
-      <span className="truncate text-[15px] font-bold" title={value}>{value}</span>
+      <span className="truncate text-[15px] font-bold" title={value}>
+        {value}
+      </span>
     </span>
   )
 }
@@ -205,9 +203,7 @@ export function ClientListRow({ row, locale, onOpen }: ViewProps) {
             {unpaidDisplay}
           </span>
           {unpaidSub && (
-            <span className="text-[11px] font-medium text-tile-muted">
-              {unpaidSub}
-            </span>
+            <span className="text-[11px] font-medium text-tile-muted">{unpaidSub}</span>
           )}
           <StatusBadge
             size="sm"
