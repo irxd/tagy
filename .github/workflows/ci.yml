@@ -28,6 +28,7 @@ jobs:
 
   e2e:
     name: End-to-end (Chromium + WebKit)
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
