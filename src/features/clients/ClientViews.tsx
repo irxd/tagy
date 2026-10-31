@@ -35,6 +35,29 @@ interface ViewProps {
 export function ClientCard({ row, locale, selected, onOpen }: ViewProps) {
   const { client, stats, currency } = row
   const hint = hints[stats.hint]
+
+  const otherUnpaidStr = stats.otherCurrencies
+    .filter((c) => c.unpaid > 0)
+    .map((c) => formatMoney(c.unpaid, c.currency, locale))
+    .join(' · ')
+  const unpaidDisplay = stats.unpaid
+    ? formatMoney(stats.unpaid, currency, locale)
+    : otherUnpaidStr || '—'
+  const unpaidSub = stats.unpaid && otherUnpaidStr ? `+ ${otherUnpaidStr}` : undefined
+
+  const otherBilledStr = stats.otherCurrencies
+    .filter((c) => c.billed > 0)
+    .map((c) => formatMoney(c.billed, c.currency, locale))
+    .join(' · ')
+  const billedDisplay =
+    stats.billed > 0
+      ? formatMoney(stats.billed, currency, locale)
+      : otherBilledStr || formatMoney(0, currency, locale)
+  const billedSub = stats.billed > 0 && otherBilledStr ? `+ ${otherBilledStr}` : undefined
+
+  const hasAnyOverdue = stats.overdue > 0 || stats.otherCurrencies.some((c) => c.overdue > 0)
+  const hasAnyUnpaid = stats.unpaid > 0 || stats.otherCurrencies.some((c) => c.unpaid > 0)
+
   return (
     <button
       type="button"
@@ -60,15 +83,23 @@ export function ClientCard({ row, locale, selected, onOpen }: ViewProps) {
       </span>
       <span className="grid grid-cols-2">
         <Figure
-          value={stats.unpaid ? formatMoney(stats.unpaid, currency, locale) : '—'}
+          value={unpaidDisplay}
           label="Unpaid"
-          tone={stats.overdue ? 'danger' : stats.unpaid ? 'fg' : 'subtle'}
+          subValue={unpaidSub}
+          tone={hasAnyOverdue ? 'danger' : hasAnyUnpaid ? 'fg' : 'subtle'}
         />
-        <Figure value={formatMoney(stats.billed, currency, locale)} label="Total billed" />
+        <Figure
+          value={billedDisplay}
+          label="Total billed"
+          subValue={billedSub}
+        />
       </span>
       <span className="grid grid-cols-3 gap-2">
         <Tile label="Invoices" value={String(stats.invoiceCount)} />
-        <Tile label="Currency" value={currency} />
+        <Tile
+          label="Currency"
+          value={stats.currencies.length > 1 ? stats.currencies.join(' · ') : currency}
+        />
         <Tile
           label="Last"
           value={stats.lastIssueDate ? formatDate(stats.lastIssueDate, 'dd MMM') : '—'}
@@ -81,10 +112,12 @@ export function ClientCard({ row, locale, selected, onOpen }: ViewProps) {
 function Figure({
   value,
   label,
+  subValue,
   tone = 'fg',
 }: {
   value: string
   label: string
+  subValue?: string
   tone?: 'fg' | 'danger' | 'subtle'
 }) {
   const color = { fg: 'text-tile-fg', danger: 'text-tile-danger-ink', subtle: 'text-tile-subtle' }[
@@ -96,6 +129,11 @@ function Figure({
         {value}
       </span>
       <span className="text-[13px] text-tile-muted">{label}</span>
+      {subValue && (
+        <span className="truncate text-xs font-semibold text-tile-muted" title={subValue}>
+          {subValue}
+        </span>
+      )}
     </span>
   )
 }
@@ -104,7 +142,7 @@ function Tile({ label, value }: { label: string; value: string }) {
   return (
     <span className="flex min-w-0 flex-col gap-1 rounded-tile-md bg-tile-tile pt-2.5 pr-2.5 pb-3 pl-3">
       <span className="text-[13px] text-tile-muted">{label}</span>
-      <span className="truncate text-[15px] font-bold">{value}</span>
+      <span className="truncate text-[15px] font-bold" title={value}>{value}</span>
     </span>
   )
 }
@@ -114,6 +152,31 @@ export function ClientListRow({ row, locale, onOpen }: ViewProps) {
   const { client, stats, currency } = row
   const hint = hints[stats.hint]
   const count = `${stats.invoiceCount} invoice${stats.invoiceCount === 1 ? '' : 's'}`
+
+  const otherUnpaidStr = stats.otherCurrencies
+    .filter((c) => c.unpaid > 0)
+    .map((c) => formatMoney(c.unpaid, c.currency, locale))
+    .join(' · ')
+  const unpaidDisplay = stats.unpaid
+    ? formatMoney(stats.unpaid, currency, locale)
+    : otherUnpaidStr || '—'
+  const unpaidSub = stats.unpaid && otherUnpaidStr ? `+ ${otherUnpaidStr}` : undefined
+
+  const otherBilledStr = stats.otherCurrencies
+    .filter((c) => c.billed > 0)
+    .map((c) => formatMoney(c.billed, c.currency, locale))
+    .join(' · ')
+  const billedDisplay =
+    stats.billed > 0
+      ? shortMoney(stats.billed, currency, locale)
+      : otherBilledStr
+        ? otherBilledStr.replace(/[.,]00$/, '')
+        : shortMoney(0, currency, locale)
+  const billedSub = stats.billed > 0 && otherBilledStr ? ` (+ ${otherBilledStr})` : ''
+
+  const hasAnyOverdue = stats.overdue > 0 || stats.otherCurrencies.some((c) => c.overdue > 0)
+  const hasAnyUnpaid = stats.unpaid > 0 || stats.otherCurrencies.some((c) => c.unpaid > 0)
+
   return (
     <li className="border-b border-tile-border last:border-b-0">
       <button
@@ -125,22 +188,27 @@ export function ClientListRow({ row, locale, onOpen }: ViewProps) {
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-[15px] font-bold">{client.name}</span>
           <span className="truncate text-xs text-tile-muted">
-            {count} · {shortMoney(stats.billed, currency, locale)} billed
+            {count} · {billedDisplay} billed{billedSub}
           </span>
         </span>
         <span className="flex shrink-0 flex-col items-end gap-[5px]">
           <span
             className={cn(
               'text-[15px] font-bold tabular-nums',
-              stats.overdue
+              hasAnyOverdue
                 ? 'text-tile-danger-ink'
-                : stats.unpaid
+                : hasAnyUnpaid
                   ? 'text-tile-fg'
                   : 'text-tile-subtle',
             )}
           >
-            {stats.unpaid ? formatMoney(stats.unpaid, currency, locale) : '—'}
+            {unpaidDisplay}
           </span>
+          {unpaidSub && (
+            <span className="text-[11px] font-medium text-tile-muted">
+              {unpaidSub}
+            </span>
+          )}
           <StatusBadge
             size="sm"
             status={hint.status}
